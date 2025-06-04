@@ -1,0 +1,38 @@
+{
+    "task_146de2c3-9f46-40b1-bf66-4e7974502006": {
+        "task_type": "创建文件夹",
+        "info": {
+            "dir": "./img_data/image"
+        }
+    },
+    "task_6742625b-2668-42ca-841a-8f06a08649a0": {
+        "task_type": "Yolo裁剪",
+        "info": {
+            "yolo_data": [
+                "头",
+                "上半身",
+                "角色"
+            ],
+            "input_dir": "./img_data/image",
+            "output_dir": "./img_data/yolo_image"
+        }
+    },
+    "task_3674ff39-9c10-4225-b72f-659f6abff5ab": {
+        "task_type": "规整图片",
+        "info": {
+            "image_size": 1024,
+            "input_dir": "./img_data/yolo_image",
+            "output_dir": "./img_data/organize_image"
+        }
+    },
+    "task_15ac3f8d-1bb5-4438-bef1-cb9b4a519d0b": {
+        "task_type": "图片打标-tagger",
+        "info": {
+            "model_source": "SmilingWolf",
+            "model_name": "wd-eva02-large-tagger-v3",
+            "confidence": 0.35,
+            "input_dir": "./img_data/organize_image",
+            "output_dir": "./img_data/organize_image"
+        }
+    }
+}
