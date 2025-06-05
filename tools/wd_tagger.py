@@ -30,10 +30,10 @@ class WDTagger:
 
     def __preprocess_image(self, image_path: str):
         image = Image.open(image_path)
+        max_dim = max(image.size)
 
         if image.size[0] != image.size[1]:
             # 使用最长边创建白色正方形
-            max_dim = max(image.size)
             padded_image = Image.new("RGB", (max_dim, max_dim), (255, 255, 255))
             # 计算居中位置并粘贴
             offset = ((max_dim - image.size[0]) // 2, (max_dim - image.size[1]) // 2)

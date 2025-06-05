@@ -25,7 +25,7 @@ class WDTagger_Downloader:
                     "repo_id": "SmilingWolf/wd-vit-tagger-v3",
                     "model": "model.onnx",
                     "csv": "selected_tags.csv",
-                }
+                },
             }
 
     def __get_models(self, model_name: str = "wd-eva02-large-tagger-v3") -> tuple[str, str]:
@@ -89,42 +89,56 @@ class WDTagger_Downloader:
 class Upscaler_Downloader:
     def __init__(self):
         self.repo_id = "deepghs/waifu2x_onnx"
-        self.hf_file_path = "20250502/onnx_models/swin_unet/art/"
+        self.hf_file_path = "20250502/onnx_models/swin_unet/art"
         self.noise = [0, 1, 2, 3]
         self.scale = [1, 2, 4]
+        self.path_dir = "./data/models/waifu2x"
+        self.temp_path_dir = "./data/models_temp/waifu2x"
+        if not os.path.exists(self.path_dir):
+            os.makedirs(self.path_dir)
 
     def __get_models_name(self, noise: int = 0, scale: int = 1) -> str:
         if noise not in self.noise or scale not in self.scale:
-            raise ValueError(f"Model {noise}_{scale}x not found.")
+            return None
         if noise == 0 and scale == 1:
-            return "noise{n}.onnx"
+            return f"noise{noise}.onnx"
         elif noise == 0:
-            return "scale{s}x.onnx"
+            return f"scale{scale}x.onnx"
         else:
-            return "noise{n}_scale{s}x.onnx"
+            return f"noise{noise}_scale{scale}x.onnx"
 
     def __get_path(self, noise: int = 0, scale: int = 1) -> str:
-        return f"./data/models/waifu2x/{self.__get_models_name(noise, scale)}"
+        return f"{self.path_dir}/{self.__get_models_name(noise, scale)}"
 
     def __get_temp_path(self, noise: int = 0, scale: int = 1) -> str:
-        return f"./data/models_temp/waifu2x/{self.__get_models_name(noise, scale)}"
+        return f"{self.temp_path_dir}/{self.__get_models_name(noise, scale)}"
+
+    def __get_temp_download_path(self, noise: int = 0, scale: int = 1) -> str:
+        name = self.__get_models_name(noise, scale)
+        return f"{self.temp_path_dir}/{name}/{self.hf_file_path}/{name}"
 
     def __if_exists(self, noise: int = 0, scale: int = 1) -> bool:
         return os.path.exists(self.__get_path(noise, scale))
 
     def get_model(self, noise: int = 0, scale: int = 1) -> str:
+        name = self.__get_models_name(noise, scale)
+        if not name:
+            return None
         if not self.__if_exists(noise, scale):
             self.__download(noise, scale)
         return self.__get_path(noise, scale)
 
-    def __set_file(self, path: str, noise: int = 0, scale: int = 1) -> None:
-        if os.path.exists(path) and os.path.isdir(path):
-            shutil.copyfile(path, self.__get_path(noise, scale))
+    def __set_file(self, noise: int = 0, scale: int = 1) -> None:
+        download_path = self.__get_temp_download_path(noise, scale)
+        path = self.__get_path(noise, scale)
+        print(f"Copying {download_path} to {path}")
+        if os.path.exists(download_path) and os.path.isfile(download_path):
+            shutil.copy(download_path, path)
 
     def __download(self, noise: int = 0, scale: int = 1) -> None:
         model_name = self.__get_models_name(noise, scale)
         model_temp_path = self.__get_temp_path(noise, scale)
-        hf_file_path = self.hf_file_path + model_name
+        hf_file_path = f"{self.hf_file_path}/{model_name}"
         hf_hub_download(repo_id=self.repo_id, filename=hf_file_path, local_dir=model_temp_path)
-        self.__set_file(model_temp_path, noise, scale)
+        self.__set_file(noise, scale)
         shutil.rmtree(f"./data/models_temp/waifu2x")

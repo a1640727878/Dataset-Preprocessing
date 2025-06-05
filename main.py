@@ -1,5 +1,7 @@
 import os
 
+from numpy.strings import endswith
+
 os.environ.setdefault("HF_ENDPOINT", "https://hf-mirror.com")  # 国内镜像加速示例
 os.environ.setdefault("HF_HOME", "./data/hf_cache")  # 缓存目录
 
@@ -11,12 +13,14 @@ import time
 
 def parse_args():
     parser = argparse.ArgumentParser(description="数据集预处理工具")
-    parser.add_argument("--mode", type=str, choices=["wd-tagged", "gui"], help="运行模式")
+    parser.add_argument("--mode", type=str, choices=["pro_image", "wd-tagged", "gui"], help="运行模式")
     parser.add_argument("--input_dir", type=str, default="./in", help="输入文件路径")
     parser.add_argument("--output_dir", type=str, default="./out", help="输出文件路径")
     parser.add_argument("--confidence_threshold", type=float, default=0.3, help="wd-tagged 的置信度")
     parser.add_argument("--thread_count", type=int, default=1, help="多线程数量")
     parser.add_argument("--wd_model", type=str, default="wd-eva02-large-tagger-v3", help="wd-tagged 的模型名称")
+    parser.add_argument("--image_size", type=int, default=1024, help="pro_image 的图片大小")
+    parser.add_argument("--ratio", type=bool, default=True, help="pro_image 是否裁剪比例")
     return parser.parse_args()
 
 
@@ -51,10 +55,9 @@ def wd_tagged_images(input_dir: str, output_dir: str, count: int = 1) -> list[li
         for file in files:
             if file.endswith((".jpg", ".jpeg", ".png")):
                 image_path = os.path.join(root, file)
+                endswith_str = image_path.split(".")[-1]
                 out_file = image_path.replace("\\", "/").replace(input_dir, output_dir)
-                for endswith_image in image_endswith:
-                    if endswith_image in out_file:
-                        out_file = out_file.replace(endswith_image, ".txt")
+                out_file = out_file[: -len(endswith_str)] + "txt"
                 image_list.append((image_path, out_file))
     k, m = divmod(len(image_list), count)
     return [image_list[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(count)]
@@ -68,12 +71,42 @@ def wd_tagged(wd_tagger_moadl, images: list[tuple[str, str]], confidence_thresho
         print(f"{image_path} -> {out_file}")
 
 
+def pro_image_images(input_dir: str, output_dir: str) -> list[tuple[str, str]]:
+    image_list = []
+    for root, _, files in os.walk(input_dir):
+        for file in files:
+            if file.endswith((".jpg", ".jpeg", ".png")):
+                image_path = os.path.join(root, file)
+                endswith_str = image_path.split(".")[-1]
+                out_file = image_path.replace("\\", "/").replace(input_dir, output_dir)
+                end_int = len(endswith_str) + 1
+                out_file = out_file[:-end_int] + "_[ratio_name].png"
+                image_list.append((image_path, out_file))
+    return image_list
+
+
+def pro_image(input_dir: str, output_dir: str, max_size=1024, ratio=True):
+    from tools.image_processing import Image_Processing
+
+    image_processing = Image_Processing()
+    images = pro_image_images(input_dir, output_dir)
+    for image_path, out_file in images:
+        image, ratio_name = image_processing.pro_image(image_path, max_size, ratio)
+        if not ratio:
+            ratio_name = ""
+        out_file = out_file.replace("[ratio_name]", ratio_name)
+        image.save(out_file)
+        print(f"{image_path} -> {out_file}")
+
+
 if __name__ == "__main__":
     args = parse_args()
     mode = args.mode
     if mode == "wd-tagged":
         model_name = args.wd_model
         thread_wd_tagged(model_name, args.input_dir, args.output_dir, args.confidence_threshold, args.thread_count)
+    if mode == "pro_image":
+        pro_image(args.input_dir, args.output_dir, args.image_size, args.ratio)
 
     print(f"运行模式: {args.mode}")
     print(f"输入目录: {os.path.abspath(args.input_dir)}")
