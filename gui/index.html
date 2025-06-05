@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dataset Preprocessing Tool</title>
+    <script src="/eel.js"></script>
+    <script>
+        // 页面加载完成后初始化
+        window.onload = function() {
+            eel.say_hello("World")(function(response) {
+                document.getElementById("output").innerText = response;
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>欢迎使用数据预处理工具</h1>
+    <p>当前是eel框架的基础GUI界面</p>
+    <button onclick="document.getElementById('output').innerText = 'Hello'">点击测试</button>
+    <p id="output"></p>
+</body>
+</html>

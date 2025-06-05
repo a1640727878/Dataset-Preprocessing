@@ -193,4 +193,10 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+data/models
+data/models_temp
 test/*
+in/
+out/
+.vscode/
+.trae/
