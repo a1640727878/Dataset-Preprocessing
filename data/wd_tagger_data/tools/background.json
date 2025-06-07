@@ -1,0 +1,10 @@
+{
+    "0": [
+        "simple background",
+        "outdoors",
+        "indoors"
+    ],
+    "1": [
+        "#{type.colors} background"
+    ]
+}

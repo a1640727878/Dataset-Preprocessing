@@ -13,7 +13,7 @@ import time
 
 def parse_args():
     parser = argparse.ArgumentParser(description="数据集预处理工具")
-    parser.add_argument("--mode", type=str, choices=["pro_image", "wd-tagged", "gui"], help="运行模式")
+    parser.add_argument("--mode", type=str, choices=["pro_image", "wd-tagged", "pro_tagger"], help="运行模式")
     parser.add_argument("--input_dir", type=str, default="./in", help="输入文件路径")
     parser.add_argument("--output_dir", type=str, default="./out", help="输出文件路径")
     parser.add_argument("--confidence_threshold", type=float, default=0.3, help="wd-tagged 的置信度")
@@ -50,7 +50,6 @@ def wd_tagged_worker(start_time: float, wd_tagger_moadl, task_id, images: list[t
 
 def wd_tagged_images(input_dir: str, output_dir: str, count: int = 1) -> list[list[tuple[str, str]]]:
     image_list = []
-    image_endswith = [".jpg", ".jpeg", ".png"]
     for root, _, files in os.walk(input_dir):
         for file in files:
             if file.endswith((".jpg", ".jpeg", ".png")):
@@ -99,14 +98,44 @@ def pro_image(input_dir: str, output_dir: str, max_size=1024, ratio=True):
         print(f"{image_path} -> {out_file}")
 
 
+def pro_image_txts(input_dir: str, output_dir: str) -> list[tuple[str, str]]:
+    txt_list = []
+    for root, _, files in os.walk(input_dir):
+        for file in files:
+            if file.endswith(".txt"):
+                txt_path = os.path.join(root, file)
+                endswith_str = txt_path.split(".")[-1]
+                out_file = txt_path.replace("\\", "/").replace(input_dir, output_dir)
+                end_int = len(endswith_str) + 1
+                out_file = out_file[:-end_int] + ".json"
+                txt_list.append((txt_path, out_file))
+    return txt_list
+
+
+def pro_tagger(input_dir: str, output_dir: str):
+    from tools.tagger_processing import Tagger_Processing
+    import json
+
+    tagger_processing = Tagger_Processing()
+    txts = pro_image_txts(input_dir, output_dir)
+    for txt_path, out_file in txts:
+        data = tagger_processing.pro_tagger(txt_path)
+        with open(out_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+        print(f"{txt_path} -> {out_file}")
+
+
 if __name__ == "__main__":
     args = parse_args()
     mode = args.mode
+
     if mode == "wd-tagged":
         model_name = args.wd_model
         thread_wd_tagged(model_name, args.input_dir, args.output_dir, args.confidence_threshold, args.thread_count)
-    if mode == "pro_image":
+    elif mode == "pro_image":
         pro_image(args.input_dir, args.output_dir, args.image_size, args.ratio)
+    elif mode == "pro_tagger":
+        pro_tagger(args.input_dir, args.output_dir)
 
     print(f"运行模式: {args.mode}")
     print(f"输入目录: {os.path.abspath(args.input_dir)}")

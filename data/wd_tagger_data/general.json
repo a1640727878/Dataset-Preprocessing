@@ -1,0 +1,75 @@
+{
+    "start": [],
+    "rating": [
+        "#{rating}"
+    ],
+    "character": [
+        "#{character.0}",
+        "#{character.1}",
+        "#{character.2}",
+        "#{character.3}"
+    ],
+    "background": [
+        "#{background.0}",
+        "#{background.1}"
+    ],
+    "framing": [
+        "#{framing.0}"
+    ],
+    "body": {
+        "skin": [
+            "$(.*) skin$"
+        ],
+        "hair": [
+            "#{bodys/hair.0}",
+            "#{bodys/hair.1}",
+            "#{bodys/hair.2}"
+        ],
+        "haed_misc": [
+            "#{bodys/misc.eyebrows}",
+            "fang"
+        ],
+        "eyes": [
+            "#{bodys/eyes.0}",
+            "#{bodys/eyes.1}",
+            "#{bodys/eyes.2}"
+        ],
+        "ears": [
+            "#{bodys/ears.0}",
+            "#{bodys/ears.1}",
+            "$(.*)ear fluff$"
+        ],
+        "tail": [
+            "tail",
+            "$(.*)tail fluff$",
+            "$(.*) tail$"
+        ],
+        "wings": [
+            "$(.*)wings$"
+        ]
+    },
+    "attires": [
+        "#{attires/misc.ears}",
+        "#{attires/misc.neck}",
+        "#{attires/misc.shirt}",
+        "#{attires/misc.clothes}",
+        "#{attires/misc.off-shoulder}",
+        "#{attires/misc.sleeves}",
+        "#{attires/misc.pants}",
+        "#{attires/misc.socks}",
+        "#{attires/misc.shoes}"
+    ],
+    "actions": [
+        "#{actions.looking}"
+    ],
+    "expression": [
+        "#{expression.0}",
+        "#{expression.1}",
+        "#{expression.2}"
+    ],
+    "misc": [],
+    "end": [],
+    "blacklist": [
+        "#{blacklist}"
+    ]
+}

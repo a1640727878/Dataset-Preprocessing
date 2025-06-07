@@ -1,0 +1,17 @@
+{
+    "0": [
+        "heterochromia",
+        "multicolored eyes",
+        "gradient eyes",
+        "two-tone eyes"
+    ],
+    "1": [
+        "#{type.colors} eyes"
+    ],
+    "2": [
+        "blank eyes",
+        "no sclera",
+        "#{type.colors} sclera",
+        "$(.*) sclera$"
+    ]
+}

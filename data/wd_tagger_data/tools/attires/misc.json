@@ -1,0 +1,92 @@
+{
+    "ears": [
+        "earring",
+        "$(.*)earring$",
+        "earrings",
+        "$(.*)earrings$",
+        "ear protection",
+        "headphones",
+        "$(.*)headphones$"
+    ],
+    "clothes": [
+        "$(.*)clothes$"
+    ],
+    "off-shoulder": [
+        "$^off-shoulder(.*)$"
+    ],
+    "sleeves": [
+        "$(.*)sleeves$",
+        "$^sleeveless(.*)$",
+        "$^sleeves(.*)$"
+    ],
+    "neck": [
+        "$(.*)choker$",
+        "#{type.colors} choker",
+        "$(.*)collar$",
+        "#{type.colors} collar",
+        "$(.*)ascot$",
+        "#{type.colors} ascot",
+        "$(.*)bowtie$",
+        "#{type.colors} bowtie",
+        "$(.*)choker$",
+        "#{type.colors} choker",
+        "$(.*)necneckerchief$",
+        "#{type.colors} necneckerchief",
+        "$(.*)necklace$",
+        "pendant",
+        "amulet",
+        "magatama",
+        "pentacle",
+        "#{type.colors} necklace",
+        "$(.*)necktie$",
+        "#{type.colors} necktie",
+        "$(.*)scarf$",
+        "fringe trim",
+        "#{type.colors} scarf",
+        "$(.*)neck$"
+    ],
+    "shirt": [
+        "$(.*)shirt$",
+        "#{type.colors} shirt",
+        "$(.*)coat$",
+        "#{type.colors} coat",
+        "$(.*)jacket$",
+        "#{type.colors} jacket",
+        "$(.*)hoodie$",
+        "#{type.colors} hoodie",
+        "hood",
+        "$^hood (.*)$"
+    ],
+    "pants": [
+        "$(.*)pants$",
+        "#{type.colors} pants",
+        "$(.*)jeans$",
+        "#{type.colors} jeans",
+        "$(.*)shorts$",
+        "#{type.colors} shorts",
+        "$(.*)skirt$",
+        "#{type.colors} skirt"
+    ],
+    "socks": [
+        "$(.*)kneehighs$",
+        "#{type.colors} kneehighs",
+        "$(.*)socks$",
+        "#{type.colors} socks",
+        "$(.*)pantyhose$",
+        "#{type.colors} pantyhose"
+    ],
+    "shoes": [
+        "$(.*)shoes$",
+        "#{type.colors} shoes",
+        "$(.*)sneakers$",
+        "#{type.colors} sneakers",
+        "$(.*)sandals$",
+        "#{type.colors} sandals",
+        "$(.*)heels$",
+        "#{type.colors} heels",
+        "$(.*)boots$",
+        "#{type.colors} boots",
+        "$(.*)footwear$",
+        "#{type.colors} footwear"
+    ]
+}

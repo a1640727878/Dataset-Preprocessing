@@ -1,0 +1,38 @@
+{
+    "0": [
+        "solo",
+        "1boy",
+        "1girl",
+        "1other",
+        "male focus",
+        "other focus"
+    ],
+    "1": [
+        "multiple boys",
+        "2boys",
+        "3boys",
+        "4boys",
+        "5boys",
+        "6+boys",
+        "shota",
+        "$(.*) boy$"
+    ],
+    "2": [
+        "multiple girls",
+        "2girls",
+        "3girls",
+        "4girls",
+        "5girls",
+        "6+girls",
+        "loli",
+        "$(.*) girl$"
+    ],
+    "3": [
+        "multiple others",
+        "2others",
+        "3others",
+        "4others",
+        "5others",
+        "6+others"
+    ]
+}
