@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import os
 import re
@@ -146,7 +147,8 @@ class Tagger_Processing:
             new_general_data = self.__set_placeholder(general_data, txt_list.copy())
             general_data = new_general_data
 
-        # txt_list_2, general_data = self.__remove_txtlist(general_data, txt_list, ["$", "#"])
+        txt_list_2, general_data_2 = self.__remove_txtlist(general_data, txt_list, ["$"])
+        general_data = general_data_2.copy()
 
         while_count = self.while_count
         while while_count > 0:
@@ -154,10 +156,52 @@ class Tagger_Processing:
             new_general_data = self.__set_replace(general_data, txt_list.copy())
             general_data = new_general_data
 
-        txt_list_2, general_data = self.__remove_txtlist(general_data, txt_list, ["&"])
+        txt_list_2, general_data_2 = self.__remove_txtlist(general_data, txt_list, ["&"])
+        general_data = general_data_2.copy()
 
         general_data["misc"] = txt_list_2
         return general_data
+
+
+class Tagger_Json_Processing:
+
+    def __init__(self, processsing_py: str = "./default_pro_json.py"):
+        self.processsing_py = processsing_py
+        self.module = None
+        if not os.path.isfile(self.processsing_py):
+            self.module = Default_Json_Processing()
+        else:
+            module_name = os.path.splitext(os.path.basename(self.processsing_py))[0]
+            spec = importlib.util.spec_from_file_location(module_name, self.processsing_py)
+            if spec is None:
+                print(f"Failed to load module from {self.processsing_py}")
+                self.module = Default_Json_Processing()
+            self.module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(self.module)
+
+            if not hasattr(self.module, "get_data") or not callable(self.module.get_data):
+                print(f"Module {self.processsing_py} does not have a function named 'get_data'")
+                self.module = Default_Json_Processing()
+
+    def __get_data(self, json_data: dict):
+        return self.module.get_data(json_data)
+
+    def pro_json(self, json_path: str) -> list[str]:
+        with open(json_path, "r", encoding="utf-8") as f:
+            json_data = json.load(f)
+        data = self.__get_data(json_data)
+        new_txt_list = []
+        flat_data = flat_dict_encoder(data)
+        for key, value in flat_data.items():
+            for item in value:
+                new_txt_list.append(item)
+        return new_txt_list
+
+
+class Default_Json_Processing:
+
+    def get_data(self, json_data: dict):
+        return json_data
 
 
 if __name__ == "__main__":

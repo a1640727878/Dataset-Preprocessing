@@ -13,7 +13,7 @@ import time
 
 def parse_args():
     parser = argparse.ArgumentParser(description="数据集预处理工具")
-    parser.add_argument("--mode", type=str, choices=["pro_image", "wd-tagged", "pro_tagger"], help="运行模式")
+    parser.add_argument("--mode", type=str, choices=["pro_image", "wd-tagged", "pro_tagger", "pro_json"], help="运行模式")
     parser.add_argument("--input_dir", type=str, default="./in", help="输入文件路径")
     parser.add_argument("--output_dir", type=str, default="./out", help="输出文件路径")
     parser.add_argument("--confidence_threshold", type=float, default=0.3, help="wd-tagged 的置信度")
@@ -21,6 +21,7 @@ def parse_args():
     parser.add_argument("--wd_model", type=str, default="wd-eva02-large-tagger-v3", help="wd-tagged 的模型名称")
     parser.add_argument("--image_size", type=int, default=1024, help="pro_image 的图片大小")
     parser.add_argument("--ratio", type=bool, default=True, help="pro_image 是否裁剪比例")
+    parser.add_argument("--processsing_py", type=str, default="./default_pro_json.py", help="pro_json 的处理文件路径")
     return parser.parse_args()
 
 
@@ -124,6 +125,29 @@ def pro_tagger(input_dir: str, output_dir: str):
             json.dump(data, f, ensure_ascii=False, indent=4)
         print(f"{txt_path} -> {out_file}")
 
+def pro_jsons(input_dir: str, output_dir: str) -> list[tuple[str, str]]:
+    jsons_list = []
+    for root, _, files in os.walk(input_dir):
+        for file in files:
+            if file.endswith(".json"):
+                json_path = os.path.join(root, file)
+                endswith_str = json_path.split(".")[-1]
+                out_file = json_path.replace("\\", "/").replace(input_dir, output_dir)
+                end_int = len(endswith_str) + 1
+                out_file = out_file[:-end_int] + ".txt"
+                jsons_list.append((json_path, out_file))
+    return jsons_list
+
+def pro_json(input_dir: str, output_dir: str, processsing_py: str = "./default_pro_json.py"):
+    from tools.tagger_processing import Tagger_Json_Processing
+    
+    jsons_list = pro_jsons(input_dir, output_dir)
+    tagger_json_processing = Tagger_Json_Processing(processsing_py)
+    for json_path, out_file in jsons_list:
+        data = tagger_json_processing.pro_json(json_path)
+        with open(out_file, "w", encoding="utf-8") as f:
+            f.write(",".join(data))
+        print(f"{json_path} -> {out_file}")
 
 if __name__ == "__main__":
     args = parse_args()
@@ -136,6 +160,8 @@ if __name__ == "__main__":
         pro_image(args.input_dir, args.output_dir, args.image_size, args.ratio)
     elif mode == "pro_tagger":
         pro_tagger(args.input_dir, args.output_dir)
+    elif mode == "pro_json":
+        pro_json(args.input_dir, args.output_dir, args.processsing_py)
 
     print(f"运行模式: {args.mode}")
     print(f"输入目录: {os.path.abspath(args.input_dir)}")
