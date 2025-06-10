@@ -1,105 +1,103 @@
-from math import e
-from huggingface_hub import hf_hub_download
-
 import os
-import shutil
+from pySmartDL import SmartDL
+import requests
+
+
+def get_download_url(repo_id: str, repo_model_file: str, commit_name: str = "main") -> str:
+    url = os.getenv("HF_ENDPOINT", "https://hf-mirror.com")
+    return f"{url}/{repo_id}/resolve/{commit_name}/{repo_model_file}?download=true"
+
+
+def download_file(url: str, output_dir: str, threads: int = 16) -> bool:
+    file_obj = SmartDL(
+        url,
+        output_dir,
+        threads=threads,
+        timeout=10,
+        progress_bar=True,
+        verify=True,
+    )
+    if file_obj.isFinished():
+        return True
+    try:
+        file_obj.start()
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+        return False
+    return file_obj.isSuccessful()
+
+
+class Models_Data:
+    def __init__(self, output_dir: str = "./data/models"):
+        self.models = {}
+        self.output_dir = output_dir
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+
+    def add_model(self, repo_id: str, model_name: str, model_file: str, commit_name: str = "main", output_file: str = None) -> None:
+        if not output_file:
+            output_file = f"{self.output_dir}/{model_name}/{model_file}"
+        self.models[model_name] = (repo_id, commit_name, model_file, output_file)
+
+    def get_model(self, model_name: str) -> str:
+        if self.download_model(model_name):
+            return self.models[model_name][3]
+        return None
+
+    def download_model(self, model_name: str, threads: int = 16) -> bool:
+        repo_id, commit_name, model_file, output_file = self.models.get(model_name)
+        if not os.path.exists(output_file):
+            url = get_download_url(repo_id, model_file, commit_name)
+            return download_file(url, output_file, threads)
+        return True
 
 
 class WDTagger_Downloader:
-    def __init__(self, models: dict = {}):
-        if models:
-            self.models = models
-        else:
-            self.models = {
-                "wd-eva02-large-tagger-v3": {
-                    "repo_id": "SmilingWolf/wd-eva02-large-tagger-v3",
-                    "model": "model.onnx",
-                    "csv": "selected_tags.csv",
-                },
-                "wd-vit-large-tagger-v3": {
-                    "repo_id": "SmilingWolf/wd-vit-large-tagger-v3",
-                    "model": "model.onnx",
-                    "csv": "selected_tags.csv",
-                },
-                "wd-vit-tagger-v3": {
-                    "repo_id": "SmilingWolf/wd-vit-tagger-v3",
-                    "model": "model.onnx",
-                    "csv": "selected_tags.csv",
-                },
-            }
+    def __init__(self):
+        self.models_data = Models_Data("./data/models/wd-tagger")
+        self.models = {}
+        self.add_models("SmilingWolf/wd-eva02-large-tagger-v3", "wd-eva02-large-tagger-v3")
+        self.add_models("SmilingWolf/wd-vit-large-tagger-v3", "wd-vit-large-tagger-v3")
+        self.add_models("SmilingWolf/wd-vit-tagger-v3", "wd-vit-tagger-v3")
+        for model_type_name, model in self.models.items():
+            self.__add_models_data(model_type_name, model)
 
-    def __get_models(self, model_name: str = "wd-eva02-large-tagger-v3") -> tuple[str, str]:
-        models = self.models.get(model_name)
-        if not models:
-            raise ValueError(f"Model {model_name} not found.")
-        model = models["model"]
-        csv = models["csv"]
-        return (model, csv)
+    def add_models(self, repo_id: str, model_type_name: str, commit_name: str = "main") -> None:
+        self.models[model_type_name] = [repo_id, commit_name]
 
-    def __get_path(self, model_name: str = "wd-eva02-large-tagger-v3") -> tuple[str, str]:
-        model, csv = self.__get_models(model_name)
-        return (
-            f"./data/models/{model_name}/{model}",
-            f"./data/models/{model_name}/{csv}",
-        )
+    def __add_models_data(self, model_type_name: str, moedl: tuple[str, str]) -> None:
+        repo_id, commit_name = moedl
+        csv_type_name = f"{model_type_name}_csv"
+        model_name = "model.onnx"
+        csv_name = "selected_tags.csv"
+        self.models_data.add_model(repo_id, model_type_name, model_name, commit_name)
+        self.models_data.add_model(repo_id, csv_type_name, csv_name, commit_name)
 
-    def __get_temp_path(self, model_name: str = "wd-eva02-large-tagger-v3") -> tuple[str, str]:
-        model, csv = self.__get_models(model_name)
-        return (
-            f"./data/models_temp/{model_name}/{model}",
-            f"./data/models_temp/{model_name}/{csv}",
-        )
-
-    def __if_exists(self, model_name: str = "wd-eva02-large-tagger-v3") -> tuple[bool, bool]:
-        model, csv = self.__get_path(model_name)
-        return (
-            os.path.exists(model),
-            os.path.exists(csv),
-        )
-
-    def get_model(self, model_name: str = "wd-eva02-large-tagger-v3") -> tuple[str, str]:
-        model_bool, scv_bool = self.__if_exists(model_name)
-        self.__download(model_name, model_bool, scv_bool)
-        return self.__get_path(model_name)
-
-    def __set_file(self, path: str, model_name: str = "wd-eva02-large-tagger-v3"):
-        if os.path.exists(path) and os.path.isdir(path):
-            dir_name = os.path.basename(path)
-            to_path = f"./data/models/{model_name}"
-            if not os.path.exists(to_path):
-                os.makedirs(to_path)
-            print(f"Copying {dir_name} to ./data/models/{model_name}/{dir_name}")
-            shutil.copy2(f"{path}/{dir_name}", f"./data/models/{model_name}/{dir_name}")
-
-    def __download(self, model_name: str = "wd-eva02-large-tagger-v3", dow_model: bool = False, dow_csv: bool = False) -> None:
-        model, csv = self.__get_models(model_name)
-        model_temp_path, csv_temp_path = self.__get_temp_path(model_name)
-        repo_id = self.models[model_name]["repo_id"]
-        if not dow_model:
-            hf_hub_download(repo_id=repo_id, filename=model, local_dir=model_temp_path)
-            self.__set_file(model_temp_path, model_name)
-        if not dow_csv:
-            hf_hub_download(repo_id=repo_id, filename=csv, local_dir=csv_temp_path)
-            self.__set_file(csv_temp_path, model_name)
-        temp_path = f"./data/models_temp/{model_name}"
-        if os.path.exists(temp_path):
-            shutil.rmtree(f"./data/models_temp/{model_name}")
+    def get_model(self, model_type_name: str) -> tuple[str, str]:
+        model_path = self.models_data.get_model(model_type_name)
+        csv_path = self.models_data.get_model(f"{model_type_name}_csv")
+        return (model_path, csv_path)
 
 
 class Upscaler_Downloader:
     def __init__(self):
         self.repo_id = "deepghs/waifu2x_onnx"
-        self.hf_file_path = "20250502/onnx_models/swin_unet/art"
+        self.hf_dir_path = "20250502/onnx_models/swin_unet/art"
+        self.path_dir = "./data/models/waifu2x"
+        self.models_data = Models_Data(self.path_dir)
         self.noise = [0, 1, 2, 3]
         self.scale = [1, 2, 4]
-        self.path_dir = "./data/models/waifu2x"
-        self.temp_path_dir = "./data/models_temp/waifu2x"
-        if not os.path.exists(self.path_dir):
-            os.makedirs(self.path_dir)
+        self.models = {}
+        self.__add_models()
+        for model_name, model in self.models.items():
+            repo_id, commit_name, model_name = model
+            self.models_data.add_model(repo_id, model_name, f"{self.hf_dir_path}/{model_name}", commit_name, f"{self.path_dir}/{model_name}")
 
-    def __get_models_name(self, noise: int = 0, scale: int = 1) -> str:
-        if noise not in self.noise or scale not in self.scale:
-            return None
+    def __get_model_name(self, noise: int = 0, scale: int = 1) -> str:
+        if noise not in self.noise:
+            noise = 0
+        if scale not in self.noise:
+            scale = 1
         if noise == 0 and scale == 1:
             return f"noise{noise}.onnx"
         elif noise == 0:
@@ -107,38 +105,94 @@ class Upscaler_Downloader:
         else:
             return f"noise{noise}_scale{scale}x.onnx"
 
-    def __get_path(self, noise: int = 0, scale: int = 1) -> str:
-        return f"{self.path_dir}/{self.__get_models_name(noise, scale)}"
-
-    def __get_temp_path(self, noise: int = 0, scale: int = 1) -> str:
-        return f"{self.temp_path_dir}/{self.__get_models_name(noise, scale)}"
-
-    def __get_temp_download_path(self, noise: int = 0, scale: int = 1) -> str:
-        name = self.__get_models_name(noise, scale)
-        return f"{self.temp_path_dir}/{name}/{self.hf_file_path}/{name}"
-
-    def __if_exists(self, noise: int = 0, scale: int = 1) -> bool:
-        return os.path.exists(self.__get_path(noise, scale))
+    def __add_models(self, repo_id: str = None, commit_name: str = "main") -> None:
+        if not repo_id:
+            repo_id = self.repo_id
+        for noise in self.noise:
+            for scale in self.scale:
+                model_name = self.__get_model_name(noise, scale)
+                self.models[model_name] = (repo_id, commit_name, f"{model_name}/model.onnx")
 
     def get_model(self, noise: int = 0, scale: int = 1) -> str:
-        name = self.__get_models_name(noise, scale)
-        if not name:
-            return None
-        if not self.__if_exists(noise, scale):
-            self.__download(noise, scale)
-        return self.__get_path(noise, scale)
+        model_name = self.__get_model_name(noise, scale)
+        return self.models_data.get_model(model_name)
 
-    def __set_file(self, noise: int = 0, scale: int = 1) -> None:
-        download_path = self.__get_temp_download_path(noise, scale)
-        path = self.__get_path(noise, scale)
-        print(f"Copying {download_path} to {path}")
-        if os.path.exists(download_path) and os.path.isfile(download_path):
-            shutil.copy(download_path, path)
 
-    def __download(self, noise: int = 0, scale: int = 1) -> None:
-        model_name = self.__get_models_name(noise, scale)
-        model_temp_path = self.__get_temp_path(noise, scale)
-        hf_file_path = f"{self.hf_file_path}/{model_name}"
-        hf_hub_download(repo_id=self.repo_id, filename=hf_file_path, local_dir=model_temp_path)
-        self.__set_file(noise, scale)
-        shutil.rmtree(f"./data/models_temp/waifu2x")
+class Yolo_Downloader:
+    def __init__(self):
+        self.models = {
+            "face": {
+                "repo_id": "deepghs/anime_face_detection",
+                "models": ["face_detect_v1.4_s"],
+            },
+            "head": {
+                "repo_id": "deepghs/anime_head_detection",
+                "models": ["head_detect_v0.5_s_pruned"],
+            },
+            "person": {
+                "repo_id": "deepghs/imgutils-models",
+                "models": ["person_detect_plus_v1.1_best_m"],
+            },
+            "halfbody": {
+                "repo_id": "deepghs/anime_halfbody_detection",
+                "models": ["halfbody_detect_v1.0_s"],
+            },
+            "eye": {
+                "repo_id": "deepghs/anime_eye_detection",
+                "models": ["eye_detect_v1.0_s"],
+            },
+            "hand": {
+                "repo_id": "deepghs/anime_hand_detection",
+                "models": ["hand_detect_v1.0_s"],
+            },
+            "censor": {
+                "repo_id": "deepghs/anime_censor_detection",
+                "models": ["censor_detect_v1.0_s"],
+            },
+            "booru_yolo": {
+                "repo_id": "deepghs/booru_yolo",
+                "models": ["yolov8s_aa11"],
+                "ext": ("model.onnx", "meta.json"),
+            },
+        }
+        self.path_dir = "./data/models/yolo"
+        self.models_data = Models_Data(self.path_dir)
+        for model_type_name, model in self.models.items():
+            repo_id = model["repo_id"]
+            models = model["models"]
+            for model_name in models:
+                model_labels_name = f"{model_name}_labels"
+                model_file_name = "model.onnx"
+                model_labels_file_name = "labels.json"
+                if "ext" in model:
+                    model_file_name, model_labels_file_name = model["ext"]
+                self.models_data.add_model(repo_id, model_name, f"{model_type_name}/{model_file_name}")
+                self.models_data.add_model(repo_id, model_labels_name, f"{model_type_name}/{model_labels_file_name}")
+
+
+class Classification_Downloader:
+
+    def __init__(self):
+        self.models = {
+            "classification": ["mobilenetv3_v1.5_dist"],
+            "completeness": ["mobilenetv3_v2.2_dist"],
+            "rating": ["mobilenetv3_sce_dist"],
+            "character_sex": ["caformer_s36_v1"],
+            "portrait_type": ["mobilenetv3_v0_dist"],
+            "is_anime": ["mobilenetv3_v1.2_dist"],
+        }
+        self.types = {
+            "classification": "deepghs/anime_classification",
+            "completeness": "deepghs/anime_completeness",
+            "rating": "deepghs/anime_rating",
+            "character_sex": "deepghs/anime_ch_sex",
+            "portrait_type": "deepghs/anime_portrait",
+            "is_anime": "deepghs/anime_real_cls",
+        }
+        self.models_dir = "./data/models/classification"
+        self.models_data = Models_Data(self.models_dir)
+        for type_name, models in self.models.items():
+            for model in models:
+                model_meta_name = f"model_meta"
+                self.models_data.add_model(self.types[type_name], model, f"{model}/model.onnx")
+                self.models_data.add_model(self.types[type_name], model_meta_name, f"{model}/meta.json")

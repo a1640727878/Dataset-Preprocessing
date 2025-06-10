@@ -16,6 +16,7 @@ bitsandbytes
 numpy
 pandas
 kornia
+pySmartDL
 
 huggingface-hub
 transformers
