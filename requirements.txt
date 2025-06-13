@@ -13,6 +13,8 @@ onnxruntime
 onnxruntime-extensions
 bitsandbytes
 
+yolov8-onnx
+
 numpy
 pandas
 kornia

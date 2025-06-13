@@ -1,11 +1,16 @@
+from hmac import new
 import os
+import json
+from typing import final
 from pySmartDL import SmartDL
 import requests
 
 
 def get_download_url(repo_id: str, repo_model_file: str, commit_name: str = "main") -> str:
     url = os.getenv("HF_ENDPOINT", "https://hf-mirror.com")
-    return f"{url}/{repo_id}/resolve/{commit_name}/{repo_model_file}?download=true"
+    final_url = f"{url}/{repo_id}/resolve/{commit_name}/{repo_model_file}?download=true"
+    print(f"Downloading from {final_url}")
+    return final_url
 
 
 def download_file(url: str, output_dir: str, threads: int = 16) -> bool:
@@ -111,7 +116,7 @@ class Upscaler_Downloader:
         for noise in self.noise:
             for scale in self.scale:
                 model_name = self.__get_model_name(noise, scale)
-                self.models[model_name] = (repo_id, commit_name, f"{model_name}/model.onnx")
+                self.models[model_name] = (repo_id, commit_name, f"{model_name}")
 
     def get_model(self, noise: int = 0, scale: int = 1) -> str:
         model_name = self.__get_model_name(noise, scale)
@@ -130,8 +135,8 @@ class Yolo_Downloader:
                 "models": ["head_detect_v0.5_s_pruned"],
             },
             "person": {
-                "repo_id": "deepghs/imgutils-models",
-                "models": ["person_detect_plus_v1.1_best_m"],
+                "repo_id": "deepghs/anime_person_detection",
+                "models": ["person_detect_v1.3_s"],
             },
             "halfbody": {
                 "repo_id": "deepghs/anime_halfbody_detection",
@@ -166,8 +171,47 @@ class Yolo_Downloader:
                 model_labels_file_name = "labels.json"
                 if "ext" in model:
                     model_file_name, model_labels_file_name = model["ext"]
-                self.models_data.add_model(repo_id, model_name, f"{model_type_name}/{model_file_name}")
-                self.models_data.add_model(repo_id, model_labels_name, f"{model_type_name}/{model_labels_file_name}")
+                self.models_data.add_model(repo_id, model_name, f"{model_name}/{model_file_name}", output_file=f"{self.path_dir}/{model_type_name}/{model_name}/{model_file_name}")
+                self.models_data.add_model(repo_id, model_labels_name, f"{model_name}/{model_labels_file_name}", output_file=f"{self.path_dir}/{model_type_name}/{model_labels_name}/{model_labels_file_name}")
+        self.models["nudenet"] = {
+            "repo_id": "deepghs/nudenet",
+            "models": ["Default"],
+        }
+
+        self.models_data.add_model("deepghs/nudenet", "nudenet", "320n.onnx", output_file=f"{self.path_dir}/nudenet/model.onnx")
+
+    def __get_model_path(self, model_type_name: str) -> tuple[str, str]:
+        model_name = self.models[model_type_name]["models"][0]
+        model_labels_name = f"{model_name}_labels"
+        model = self.models_data.get_model(model_name)
+        model_label = self.models_data.get_model(model_labels_name)
+        return (model, model_label)
+
+    def __parse_json(self, json_path: str) -> dict:
+        with open(json_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def __save_json(self, json_path: str, data: dict or list) -> None:
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+    def get_model(self, model_type_name: str) -> tuple[str, str]:
+        if model_type_name == "booru_yolo":
+            new_label = f"{self.path_dir}/booru_yolo/labels.json"
+            model, model_label = self.__get_model_path(model_type_name)
+            if not os.path.exists(new_label):
+                meta_json = self.__parse_json(model_label)
+                new_json: list = meta_json["labels"]
+                self.__save_json(new_label, new_json)
+            return (model, new_label)
+        elif model_type_name == "nudenet":
+            label = f"{self.path_dir}/nudenet/labels.json"
+            if not os.path.exists(label):
+                new_json = ["FEMALE_GENITALIA_COVERED", "FACE_FEMALE", "BUTTOCKS_EXPOSED", "FEMALE_BREAST_EXPOSED", "FEMALE_GENITALIA_EXPOSED", "MALE_BREAST_EXPOSED", "ANUS_EXPOSED", "FEET_EXPOSED", "BELLY_COVERED", "FEET_COVERED", "ARMPITS_COVERED", "ARMPITS_EXPOSED", "FACE_MALE", "BELLY_EXPOSED", "MALE_GENITALIA_EXPOSED", "ANUS_COVERED", "FEMALE_BREAST_COVERED", "BUTTOCKS_COVERED"]
+                self.__save_json(label, new_json)
+            return (self.models_data.get_model(model_type_name), label)
+        else:
+            return self.__get_model_path(model_type_name)
 
 
 class Classification_Downloader:

@@ -10,6 +10,12 @@
   
 ## 使用教程
 
+### **yolo批量裁剪图**
+
+```bash
+python main.py --mode yolo_crop --input_dir [输入文件夹] --output_dir [输出文件夹]
+```
+
 ### **规整化图片**
 
 ```bash
