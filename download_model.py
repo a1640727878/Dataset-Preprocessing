@@ -101,7 +101,7 @@ class Upscaler_Downloader:
     def __get_model_name(self, noise: int = 0, scale: int = 1) -> str:
         if noise not in self.noise:
             noise = 0
-        if scale not in self.noise:
+        if scale not in self.scale:
             scale = 1
         if noise == 0 and scale == 1:
             return f"noise{noise}.onnx"

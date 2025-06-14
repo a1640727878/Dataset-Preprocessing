@@ -165,9 +165,8 @@ class Json2TxtProcessing:
 class YoloCropper:
     from tools.yolo import ImageCropper
     from PIL import Image
-    import cv2
 
-    def __init__(self, input_dir: str, output_dir: str, confidence_threshold: float = 0.25, iou_threshold: float = 0.7) -> None:
+    def __init__(self, input_dir: str, output_dir: str, confidence_threshold: float = 0.35, iou_threshold: float = 0.7) -> None:
         self.input_dir = input_dir
         self.output_dir = output_dir
         self.confidence_threshold = confidence_threshold
@@ -230,7 +229,7 @@ class YoloCropper:
             image_pil = self.Image.open(image_path)
             if result is not None:
                 box = result["box"]
-                if self.__check_box_ratio(box, image_pil) > 0.9:
+                if self.__check_box_ratio(box, image_pil) > 0.7:
                     continue
                 new_image = image_pil.crop(box)
             else:

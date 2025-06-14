@@ -200,3 +200,5 @@ in/
 out/
 .vscode/
 .trae/
+test.py
+pip.ps1

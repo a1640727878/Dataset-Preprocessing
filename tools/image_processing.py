@@ -1,14 +1,17 @@
 from PIL import Image
+import math
 from tools.upscale import Image_Upscaler
 
 RATIOS = {
-    "1_1": 1.0,  # 1:1
-    "2_3": 2 / 3,  # 2:3
-    "3_2": 3 / 2,  # 3:2
-    "4_3": 4 / 3,  # 4:3
-    "3_4": 3 / 4,  # 3:4
-    "16_9": 16 / 9,  # 16:9
-    "9_16": 9 / 16,  # 9:16
+    "1_1": (1, 1),
+    "2_3": (2, 3),
+    "3_2": (3, 2),
+    "3_4": (3, 4),
+    "4_3": (4, 3),
+    "9_16": (9, 16),
+    "16_9": (16, 9),
+    "9_21": (9, 21),
+    "21_9": (21, 9),
 }
 
 
@@ -30,19 +33,22 @@ class Image_Processing:
         return self.upscaler.upscale_image(image, scale=scale, noise=noise)
 
     def __resize_image(self, image: Image, image_max_size=1024):
-        # 获取原始尺寸
+
         width, height = image.size
         max_side = max(width, height)
 
-        # 如果原图最长边小于目标尺寸，需要先放大再缩小
         if max_side < image_max_size:
-            # 计算需要的放大倍数
-            scale = 2 if image_max_size / max_side <= 2 else 4
-            # 先放大
-            image = self.__upscale_image(image, scale=scale)
+            scale = math.ceil(image_max_size / max_side)
+            noise = 0
+            if scale <= 2:
+                scale = 2
+            else:
+                noise = 2
+                scale = 4
+
+            image = self.__upscale_image(image, noise=noise, scale=scale)
             width, height = image.size
 
-        # 等比例缩放图片
         if width > height:
             height = int(height * image_max_size / width)
             width = image_max_size
@@ -54,30 +60,51 @@ class Image_Processing:
 
     def __crop_to_ratio(self, image: Image) -> tuple:
         width, height = image.size
-        current_ratio = width / height
         ratios = RATIOS.copy()
 
-        # 找到最接近的标准比例
-        closest_ratio_name = min(ratios.keys(), key=lambda x: abs(ratios[x] - current_ratio))
-        target_ratio = ratios[closest_ratio_name]
+        image_ratios = {}
+        for name, (w_ratio, h_ratio) in ratios.items():
+            target_ratio = w_ratio / h_ratio
+            current_ratio = width / height
+            ratio_error = abs(target_ratio - current_ratio) / current_ratio
+            image_ratios[name] = ratio_error
+        ratio_name = min(image_ratios, key=image_ratios.get)
 
-        # 计算裁剪尺寸
-        if current_ratio > target_ratio:
-            # 需要裁剪宽度
-            new_width = int(height * target_ratio)
-            crop_left = (width - new_width) // 2
-            cropped_image = image.crop((crop_left, 0, crop_left + new_width, height))
+        w_ratio, h_ratio = ratios[ratio_name]
+        long_ratio = max(w_ratio, h_ratio)
+        short_ratio = min(w_ratio, h_ratio)
+        long_size = max(width, height)
+        short_size = min(width, height)
+
+        new_long_size = long_size - (long_size % long_ratio)
+        new_short_size = short_ratio * (new_long_size // long_ratio)
+
+        if width > height:
+            new_width, new_height = new_long_size, new_short_size
         else:
-            # 需要裁剪高度
-            new_height = int(width / target_ratio)
-            crop_top = (height - new_height) // 2
-            cropped_image = image.crop((0, crop_top, width, crop_top + new_height))
+            new_width, new_height = new_short_size, new_long_size
 
-        return cropped_image, closest_ratio_name
+        MIN_SIZE = 100
+        if new_width < MIN_SIZE or new_height < MIN_SIZE:
+            scale = max(MIN_SIZE / new_width, MIN_SIZE / new_height)
+            new_width = int(new_width * scale)
+            new_height = int(new_height * scale)
+
+        new_image = Image.new("RGBA", (new_width, new_height), color=(255, 255, 255, 0))
+
+        crop_width = min(width, new_width)
+        crop_height = min(height, new_height)
+        left = (width - crop_width) // 2
+        top = (height - crop_height) // 2
+        cropped = image.crop((left, top, left + crop_width, top + crop_height))
+        resized = cropped.resize((new_width, new_height), Image.LANCZOS)
+        new_image.paste(resized, (0, 0))
+
+        return new_image, ratio_name
 
     def pro_image(self, image_path: str, max_size=1024, ratio=True) -> tuple[Image, str]:
         image = Image.open(image_path)
+        image = self.__resize_image(image, max_size)
         if ratio:
             image, ratio_name = self.__crop_to_ratio(image)
-        image = self.__resize_image(image, max_size)
         return image, ratio_name if ratio else None

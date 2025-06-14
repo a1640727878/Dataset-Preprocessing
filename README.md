@@ -1,7 +1,7 @@
 # Dataset-Preprocessing
 
 ## 功能计划
-- [ ] yolo 截取角色图片
+- [x] yolo 截取角色图片
 - [x] 规整化图片
 - [x] wd_tagger 对图片生成 txt 格式打标
 - [x] txt 格式打标结果整理成 json 格式
@@ -39,3 +39,8 @@ python main.py --mode pro_tagger --input_dir [输入文件夹] --output_dir [输
 ```bash
 python main.py --mode pro_json --input_dir [输入文件夹] --output_dir [输出文件夹] --processsing_py [处理脚本]
 ```
+
+## 感谢
+- [Deepghs](https://huggingface.co/deepghs)  *yolo模型的来源,
+- [SmilingWolf](https://huggingface.co/SmilingWolf) *wd-tagger的来源
+- [Nagadomi](https://github.com/nagadomi/nunif) *超分模型的来源

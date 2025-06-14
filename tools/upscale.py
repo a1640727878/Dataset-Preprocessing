@@ -1,157 +1,161 @@
-from turtle import width
+from re import X
+from tkinter import Y
 from download_model import Upscaler_Downloader
-
 import onnxruntime as ort
 import numpy as np
-import math
-from typing import Tuple
 from PIL import Image
+import math
 
 
 class Image_Upscaler:
-    def __init__(self):
+    def __init__(self) -> None:
         self.upscaler_download = Upscaler_Downloader()
         self.default_model = self.upscaler_download.get_model(0, 2)
 
         self.session_options = ort.SessionOptions()
         self.session_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
 
-        self.providers = []
-        self.providers.append("CPUExecutionProvider")
+        self.providers = ["CPUExecutionProvider"]
 
         self._sessions_cache = {}
+        self._model_path_cache = {}
 
-    def get_model(self, noise: int = 0, scale: int = 1) -> ort.InferenceSession:
-        model_path = self.upscaler_download.get_model(noise, scale)
+    def __crop_image(self, image: Image) -> Image:
+        mask = image.convert("L")
+        pixels = mask.getdata()
+        alpha = Image.new("L", mask.size)
+        alpha_pixels = []
+
+        for pixel in pixels:
+            if pixel <= 60:
+                alpha_pixels.append(0)
+            else:
+                alpha_pixels.append(255)
+
+        alpha.putdata(alpha_pixels)
+
+        new_image = Image.new("RGBA", image.size)
+        new_image.paste(image)
+        new_image.putalpha(alpha)
+
+        bbox = new_image.getbbox()
+        return image.crop(bbox)
+
+    def __pro_image(self, image: Image):
+        width, height = image.size
+        new_size = max(width, height)
+        new_size = (new_size // 32 + 1) * 32
+        new_image = Image.new("RGB", (new_size, new_size), (0, 0, 0))
+        new_image.paste(image, (0, 0))
+        return new_image
+
+    def __get_model_path(self, noise: int = 0, scale: int = 2):
+        if (noise, scale) not in self._model_path_cache:
+            self._model_path_cache[(noise, scale)] = self.upscaler_download.get_model(noise, scale)
+        return self._model_path_cache[(noise, scale)]
+
+    def get_model(self, noise: int = 0, scale: int = 2):
+        model_path = self.__get_model_path(noise, scale)
         if not model_path:
             model_path = self.default_model
         if model_path not in self._sessions_cache:
-            self._sessions_cache[model_path] = self.__get_session(model_path)
+            model = ort.InferenceSession(model_path, sess_options=self.session_options, providers=self.providers)
+            input_name = model.get_inputs()[0].name
+            self._sessions_cache[model_path] = (model, input_name)
         return self._sessions_cache[model_path]
 
-    def __get_session(self, model_path: str) -> ort.InferenceSession:
-        return ort.InferenceSession(model_path, sess_options=self.session_options, providers=self.providers)
+    def __preprocess_tile(self, image: Image) -> tuple[np.ndarray, tuple[int, int]]:
+        if image.mode != "RGB":
+            image = image.convert("RGB")
 
-    def __pad_to_multiple(self, img_np: np.ndarray, divisor: int = 32) -> Tuple[np.ndarray, Tuple[int, int]]:
-        """将图像填充到指定倍数的尺寸"""
-        h, w = img_np.shape[-2:]  # 获取 H, W
-        pad_h = (divisor - h % divisor) % divisor
-        pad_w = (divisor - w % divisor) % divisor
-        padded_img = np.pad(img_np, ((0, 0), (0, 0), (0, pad_h), (0, pad_w)), mode="reflect")
-        original_shape = (h, w)
-        return padded_img, original_shape
+        image_np = np.array(image).astype(np.float32) / 255.0
+        image_transpose = np.transpose(image_np, (2, 0, 1))
+        image_dims = np.expand_dims(image_transpose, axis=0)
 
-    def __preprocess_tile(self, tile_image: Image) -> Tuple[np.ndarray, Tuple[int, int]]:
-        """
-        预处理单个图像块 (NCHW, float32)，并进行填充。
-        返回填充后的图像块和原始形状。
-        """
-        if tile_image.mode != "RGB":
-            tile_image = tile_image.convert("RGB")
+        height, width = image.size
+        pad_height = (32 - height % 32) % 32
+        pad_width = (32 - width % 32) % 32
+        image_dims = np.pad(image_dims, ((0, 0), (0, 0), (0, pad_height), (0, pad_width)), mode="constant")
 
-        img_np = np.array(tile_image).astype(np.float32) / 255.0
-        img_np = np.transpose(img_np, (2, 0, 1))
-        img_np = np.expand_dims(img_np, axis=0)
+        return image_dims, (height, width)
 
-        # 对单个块进行填充
-        padded_img, original_shape = self.__pad_to_multiple(img_np, 32)
-        return padded_img, original_shape
+    def __postprocess_tile(self, output_np: np.ndarray, origin_size: tuple[int, int], scale: int):
+        output_squeeze = np.squeeze(output_np, axis=0)
+        output_transpose = np.transpose(output_squeeze, (1, 2, 0))
+        output_clip = np.clip(output_transpose, 0.0, 1.0)
 
-    def __postprocess_tile(self, output_np: np.ndarray, original_shape: Tuple[int, int], scale: int) -> Image:
-        output_np = np.squeeze(output_np, axis=0)
-        output_np = np.transpose(output_np, (1, 2, 0))
-        output_np = np.clip(output_np, 0.0, 1.0)
+        origin_height, origin_width = origin_size
+        target_height = origin_height * scale
+        target_width = origin_width * scale
 
-        original_h, original_w = original_shape
-        target_h = original_h * scale
-        target_w = original_w * scale
+        crop_output = output_clip[:target_height, :target_width, :]
+        image_array = (crop_output * 255).astype(np.uint8)
 
-        cropped_output = output_np[:target_h, :target_w, :]
-        img_array = (cropped_output * 255.0).astype(np.uint8)
-        return Image.fromarray(img_array, "RGB")
+        return Image.fromarray(image_array, "RGB")
 
-    def __upscale(self, input_name: str, image: Image, session: ort.InferenceSession, scale: int) -> Image:
-        input_data, original_shape = self.__preprocess_tile(image)
-        try:
-            outputs = session.run(None, {input_name: input_data})
-            output_data = outputs[0]
-        except Exception as e:
-            raise RuntimeError(f"ONNX 模型推理失败")
-        result_image = self.__postprocess_tile(output_data, original_shape, scale)
+    def __upscale(self, image: Image, noise: int = 0, scale: int = 2) -> tuple[Image, tuple[int, int], tuple[int, int, int, int]]:
+        input_data, (height, width) = self.__preprocess_tile(image)
+        model, input_name = self.get_model(noise, scale)
+        outputs_data = model.run([], {input_name: input_data})[0]
+        result_image = self.__postprocess_tile(outputs_data, (height, width), scale)
         return result_image
 
-    def __upscale_tile(
-        self,
-        input_name: str,
-        image: Image,
-        session: ort.InferenceSession,
-        scale: int,
-        tile_size: int = 250,
-        tile_overlap: int = 32,
-        tile_min_size: int = 350,
-    ) -> Image:
+    def __upscale_tile(self, image: Image, noise: int = 0, scale: int = 2):
         width, height = image.size
         output_width = width * scale
         output_height = height * scale
         output_image = Image.new("RGB", (output_width, output_height))
-        stride = tile_size - tile_overlap
-
-        if stride <= 0:
-            raise ValueError(f"tile_size ({tile_size}) 必须大于 tile_overlap ({tile_overlap})")
-
-        num_tiles_x = math.ceil((width - tile_overlap) / stride) if width > tile_overlap else 1
-        num_tiles_y = math.ceil((height - tile_overlap) / stride) if height > tile_overlap else 1
+        origin_stride = 32
+        while min(width, height) > origin_stride:
+            origin_stride += 32
+        origin_stride -= 32
+        if origin_stride > 512:
+            origin_stride = 512
+        stride = origin_stride - 32
+        num_tiles_x = math.ceil((width - 32) / stride) if width > 32 else 1
+        num_tiles_y = math.ceil((height - 32) / stride) if height > 32 else 1
 
         total_tiles = num_tiles_x * num_tiles_y
         processed_tiles = 0
 
-        print(f"开始分块处理: {num_tiles_x} x {num_tiles_y} = {total_tiles} 块 (阈值 {tile_min_size})")
+        print(f"开始分块处理: {num_tiles_x} x {num_tiles_y} = {total_tiles} 块 (块大小 {origin_stride})")
 
         for y in range(num_tiles_y):
             for x in range(num_tiles_x):
-                # 计算当前块的坐标 (左上角)
                 x_start = x * stride
                 y_start = y * stride
-                # 计算当前块的坐标 (右下角)，确保不超过图像边界
-                x_end = min(x_start + tile_size, width)
-                y_end = min(y_start + tile_size, height)
 
-                # 提取块
-                tile = image.crop((x_start, y_start, x_end, y_end))
+                if width - x_start < origin_stride:
+                    x_end = width
+                    x_start = width - origin_stride
+                else:
+                    x_end = x_start + origin_stride
+                if height - y_start < origin_stride:
+                    y_end = height
+                    y_start = height - origin_stride
+                else:
+                    y_end = y_start + origin_stride
 
-                # 放大块
-                upscaled_tile = self.__upscale(input_name, tile, session, scale)
+                tile_image = image.crop((x_start, y_start, x_end, y_end))
+                result_image = self.__upscale(tile_image, noise, scale)
 
-                # 计算粘贴位置 (考虑重叠和缩放)
                 paste_x_start = x_start * scale
                 paste_y_start = y_start * scale
 
-                # 只粘贴非重叠部分，或者根据需要处理重叠区域（简化：直接粘贴）
-                output_image.paste(upscaled_tile, (paste_x_start, paste_y_start))
+                output_image.paste(result_image, (paste_x_start, paste_y_start))
 
                 processed_tiles += 1
-                print(f"已处理块: {processed_tiles}/{total_tiles}", end="\r")
+                print(f"已处理 {processed_tiles} / {total_tiles} 块", end="\r")
 
         return output_image
 
-    def upscale_image(
-        self,
-        image: Image,
-        noise: int = 0,
-        scale: int = 1,
-        tile_size: int = 250,
-        tile_overlap: int = 32,
-        tile_min_size: int = 350,
-    ) -> Image:
-        model = self.get_model(noise, scale)
-        input_name = model.get_inputs()[0].name
+    def upscale_image(self, image: Image, noise: int = 0, scale: int = 2, test: bool = False) -> Image:
         width, height = image.size
-        max_dim = max(width, height)
-
-        use_tiling = scale > 1 and max_dim >= tile_min_size
-
-        if not use_tiling:
-            return self.__upscale(input_name, image, model, scale)
+        if max(width, height) > 32:
+            result_image = self.__upscale_tile(image, noise, scale)
         else:
-            return self.__upscale_tile(input_name, image, model, scale, tile_size, tile_overlap, tile_min_size)
-            # 计算需要的图像块数量
+            new_image = self.__pro_image(image)
+            result_image = self.__upscale(new_image, noise, scale)
+        if test:
+            result_image.save("./out/test_2.png")
+        return self.__crop_image(result_image)
