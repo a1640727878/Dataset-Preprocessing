@@ -34,22 +34,38 @@ class Image_Processing:
             noise = 0
         return self.upscaler.upscale_image(image, scale=scale, noise=noise)
 
-    def __resize_image(self, image: Image, image_max_size=1024):
+    def __while_upscale_image(self, image: Image, image_max_size=1024):
+        new_image = image
+        noise = 0
+        key_int = 0
+        while max(new_image.size) < image_max_size:
+            scale = self.__math_image_scale(new_image, image_max_size)
+            if scale == 4:
+                noise = 2
+            new_new_image = self.__upscale_image(new_image, noise=noise, scale=scale)
+            new_image = new_new_image
+            if max(new_image.size) < image_max_size:
+                key_int += 1
+                print(f"开始第{key_int+1}次采样，当前图片大小：{new_image.size}")
+        return new_image
 
+    def __math_image_scale(self, image: Image, image_max_size=1024):
         width, height = image.size
         max_side = max(width, height)
 
         if max_side < image_max_size:
             scale = math.ceil(image_max_size / max_side)
-            noise = 0
             if scale <= 2:
                 scale = 2
             else:
-                noise = 2
                 scale = 4
+        return scale
 
-            image = self.__upscale_image(image, noise=noise, scale=scale)
-            width, height = image.size
+    def __resize_image(self, image: Image, image_max_size=1024):
+
+        if max(image.size) < image_max_size:
+            image = self.__while_upscale_image(image, image_max_size)
+        width, height = image.size
 
         if width > height:
             height = int(height * image_max_size / width)
