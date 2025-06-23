@@ -8,6 +8,11 @@ def set_end_str(path: str, new_end: str) -> str:
     return new_path
 
 
+def create_dir(path: str) -> None:
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
 class WDTagger:
     from tools.wd_tagger import WDTagger
     import threading
@@ -20,6 +25,7 @@ class WDTagger:
             self.model_name,
         )
         self.input_dir, self.output_dir = dir
+        create_dir(self.output_dir)
 
         self.thread_count = thread_count
 
@@ -77,6 +83,7 @@ class ImageProcessing:
     def __init__(self, input_dir: str, output_dir: str, image_long_size: int = 1024, is_resize: bool = True) -> None:
         self.input_dir = input_dir
         self.output_dir = output_dir
+        create_dir(self.output_dir)
         self.image_long_size = image_long_size
         self.is_resize = is_resize
         self.image_paths = self.__get_paths()
@@ -110,6 +117,7 @@ class Txt2JsonProcessing:
     def __init__(self, input_dir: str, output_dir: str) -> None:
         self.input_dir = input_dir
         self.output_dir = output_dir
+        create_dir(self.output_dir)
 
         self.tagger_processing = self.Tagger_Processing()
         self.tag_paths = self.__get_paths()
@@ -139,6 +147,7 @@ class Json2TxtProcessing:
     def __init__(self, input_dir: str, output_dir: str, processsing_py: str = "./default_pro_json.py") -> None:
         self.input_dir = input_dir
         self.output_dir = output_dir
+        create_dir(self.output_dir)
 
         self.tagger_json_processing = self.Tagger_Json_Processing(processsing_py)
         self.tag_paths = self.__get_paths()
@@ -162,13 +171,15 @@ class Json2TxtProcessing:
             print(f"{json_path} -> {out_path}")
 
 
-class YoloCropper:
+class YoloCroppr:
     from tools.yolo import ImageCropper
     from PIL import Image
 
     def __init__(self, input_dir: str, output_dir: str, confidence_threshold: float = 0.35, iou_threshold: float = 0.7) -> None:
         self.input_dir = input_dir
         self.output_dir = output_dir
+        create_dir(self.output_dir)
+
         self.confidence_threshold = confidence_threshold
         self.iou_threshold = iou_threshold
 

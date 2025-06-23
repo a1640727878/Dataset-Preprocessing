@@ -1,9 +1,6 @@
-from hmac import new
 import os
 import json
-from typing import final
 from pySmartDL import SmartDL
-import requests
 
 
 def get_download_url(repo_id: str, repo_model_file: str, commit_name: str = "main") -> str:

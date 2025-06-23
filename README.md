@@ -1,6 +1,7 @@
 # Dataset-Preprocessing
 
 ## 功能计划
+- [x] 一键安装虚拟环境 (前提有python)
 - [x] yolo 截取角色图片
 - [x] 规整化图片
 - [x] wd_tagger 对图片生成 txt 格式打标
@@ -10,34 +11,43 @@
   
 ## 使用教程
 
+### **一键安装虚拟环境**
+
+点击 **install[一键安装虚拟环境].bat** 一键安装就好  
+(如果有能力 建议自己安装 **python3.10** 和 pip intall -r requirements.txt)  
+
 ### **yolo批量裁剪图**
 
 ```bash
-python main.py --mode yolo_crop --input_dir [输入文件夹] --output_dir [输出文件夹]
+venv\pytho.exe mode\yolo-croppr.py --input_dir [输入文件夹] --output_dir [输出文件夹]
 ```
 
 ### **规整化图片**
 
 ```bash
-python main.py --mode pro_image --input_dir [输入文件夹] --output_dir [输出文件夹] --size [输出图片大小]
+venv\python.exe mode\image-pro.py --input_dir [输入文件夹] --output_dir [输出文件夹] --size [输出图片大小]
+
 ```
 
 ### **打标**
 
 ```bash
-python main.py --mode wd-tagged --wd_model [模型] --input_dir [输入文件夹] --output_dir [输出文件夹] --confidence_threshold [置信度阈值] --thread_count [线程数]
+venv\python.exe mode\wd-tagger.py --wd_model [模型] --input_dir [输入文件夹] --output_dir [输出文件夹] --confidence_threshold [置信度阈值] --thread_count [线程数]
+
 ```
 
 ### **txt标签批处理**
 
 ```bash
-python main.py --mode pro_tagger --input_dir [输入文件夹] --output_dir [输出文件夹]
+venv\python.exe mode\txt2json.py --input_dir [输入文件夹] --output_dir [输出文件夹]
+
 ```
 
 ### **json标签逆向批处理**
 
 ```bash
-python main.py --mode pro_json --input_dir [输入文件夹] --output_dir [输出文件夹] --processsing_py [处理脚本]
+venv\python.exe mode\json2txt.py  --input_dir [输入文件夹] --output_dir [输出文件夹] --processsing_py [处理脚本]
+
 ```
 
 ## 感谢

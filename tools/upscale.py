@@ -1,5 +1,3 @@
-from re import X
-from tkinter import Y
 from download_model import Upscaler_Downloader
 import onnxruntime as ort
 import numpy as np

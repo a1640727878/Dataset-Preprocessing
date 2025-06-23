@@ -1,4 +1,4 @@
-eel
+PySide6
 
 pillow
 opencv-python
@@ -10,8 +10,6 @@ timm
 tqdm
 onnx
 onnxruntime
-onnxruntime-extensions
-bitsandbytes
 
 yolov8-onnx
 
@@ -20,5 +18,4 @@ pandas
 kornia
 pySmartDL
 
-huggingface-hub
 transformers
