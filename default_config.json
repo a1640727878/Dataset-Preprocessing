@@ -1,0 +1,27 @@
+[
+    {
+        "mode": "yolo_croppr",
+        "input_dir": "./in",
+        "output_dir": "./out/yolo_croppr"
+    },
+    {
+        "mode": "image_pro",
+        "input_dir": "./out/yolo_croppr",
+        "output_dir": "./out/image"
+    },
+    {
+        "mode": "wd_tagger",
+        "input_dir": "./out/image",
+        "output_dir": "./out/wd_tagger"
+    },
+    {
+        "mode": "txt2json",
+        "input_dir": "./out/wd_tagger",
+        "output_dir": "./out/wd_tagger_json"
+    },
+    {
+        "mode": "json2txt",
+        "input_dir": "./out/wd_tagger_json",
+        "output_dir": "./out/image"
+    }
+]

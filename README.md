@@ -7,6 +7,7 @@
 - [x] wd_tagger 对图片生成 txt 格式打标
 - [x] txt 格式打标结果整理成 json 格式
 - [x] 对json格式标签批处理转回txt格式
+- [x] 使用配置文件批处理
 - [ ] GUI 界面
   
 ## 使用教程
@@ -20,6 +21,7 @@
 
 ```bash
 venv\pytho.exe mode\yolo-croppr.py --input_dir [输入文件夹] --output_dir [输出文件夹]
+
 ```
 
 ### **规整化图片**
@@ -49,6 +51,13 @@ venv\python.exe mode\txt2json.py --input_dir [输入文件夹] --output_dir [输
 venv\python.exe mode\json2txt.py  --input_dir [输入文件夹] --output_dir [输出文件夹] --processsing_py [处理脚本]
 
 ```
+
+### **批处理**
+
+```bash
+venv\python.exe mode\json-config.py --json_config [配置文件]
+```
+怎么用看 **default_config.json** ,应该能看懂吧
 
 ## 感谢
 - [Deepghs](https://huggingface.co/deepghs)  *yolo模型的来源,

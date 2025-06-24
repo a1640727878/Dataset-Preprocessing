@@ -175,7 +175,7 @@ class YoloCroppr:
     from tools.yolo import ImageCropper
     from PIL import Image
 
-    def __init__(self, input_dir: str, output_dir: str, confidence_threshold: float = 0.35, iou_threshold: float = 0.7) -> None:
+    def __init__(self, input_dir: str, output_dir: str, cropers_names=["person", "halfbody", "head", "face"], confidence_threshold: float = 0.35, iou_threshold: float = 0.7) -> None:
         self.input_dir = input_dir
         self.output_dir = output_dir
         create_dir(self.output_dir)
@@ -183,15 +183,17 @@ class YoloCroppr:
         self.confidence_threshold = confidence_threshold
         self.iou_threshold = iou_threshold
 
-        self.cropers = {
-            "person": self.ImageCropper("person", confidence_threshold, iou_threshold),
-            "halfbody": self.ImageCropper("halfbody", confidence_threshold, iou_threshold),
-            "head": self.ImageCropper("head", confidence_threshold, iou_threshold),
-            "face": self.ImageCropper("face", confidence_threshold, iou_threshold),
-        }
+        self.cropers_names = cropers_names
+
+        self.cropers = {}
+        for name in self.cropers_names:
+            self.cropers[name] = self.ImageCropper(name, self.confidence_threshold, self.iou_threshold)
 
         self.old_image_paths = self.__get_old_paths()
         self.yolo_data = self.__get_yolo_data()
+
+    def get_croper(self, name: str) -> ImageCropper:
+        return self.ImageCropper(name, self.confidence_threshold, self.iou_threshold)
 
     def __get_old_paths(self):
         paths = []

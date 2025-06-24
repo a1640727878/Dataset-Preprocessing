@@ -209,31 +209,3 @@ class Yolo_Downloader:
             return (self.models_data.get_model(model_type_name), label)
         else:
             return self.__get_model_path(model_type_name)
-
-
-class Classification_Downloader:
-
-    def __init__(self):
-        self.models = {
-            "classification": ["mobilenetv3_v1.5_dist"],
-            "completeness": ["mobilenetv3_v2.2_dist"],
-            "rating": ["mobilenetv3_sce_dist"],
-            "character_sex": ["caformer_s36_v1"],
-            "portrait_type": ["mobilenetv3_v0_dist"],
-            "is_anime": ["mobilenetv3_v1.2_dist"],
-        }
-        self.types = {
-            "classification": "deepghs/anime_classification",
-            "completeness": "deepghs/anime_completeness",
-            "rating": "deepghs/anime_rating",
-            "character_sex": "deepghs/anime_ch_sex",
-            "portrait_type": "deepghs/anime_portrait",
-            "is_anime": "deepghs/anime_real_cls",
-        }
-        self.models_dir = "./data/models/classification"
-        self.models_data = Models_Data(self.models_dir)
-        for type_name, models in self.models.items():
-            for model in models:
-                model_meta_name = f"model_meta"
-                self.models_data.add_model(self.types[type_name], model, f"{model}/model.onnx")
-                self.models_data.add_model(self.types[type_name], model_meta_name, f"{model}/meta.json")
