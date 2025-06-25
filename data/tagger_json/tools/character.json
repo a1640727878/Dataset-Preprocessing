@@ -1,0 +1,42 @@
+{
+    "one": [
+        "solo",
+        "solo focus",
+        "1boy",
+        "1girl",
+        "1other"
+    ],
+    "age": [
+        "child",
+        "baby",
+        "aged down",
+        "aged up",
+        "shota",
+        "loli"
+    ],
+    "focus": [
+        "male focus",
+        "other focus"
+    ],
+    "multiple": [
+        "multiple",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6+"
+    ],
+    "boys": [
+        "#{character.multiple}boys",
+        "#{type.animal} boy",
+        "$(.*) boy$"
+    ],
+    "girls": [
+        "#{character.multiple}girls",
+        "#{type.animal} girl",
+        "$(.*) girl$"
+    ],
+    "others": [
+        "#{character.multiple}others"
+    ]
+}

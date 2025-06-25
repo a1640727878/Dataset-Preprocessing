@@ -111,7 +111,7 @@ class ImageProcessing:
 
 
 class Txt2JsonProcessing:
-    from tools.tagger_processing import Tagger_Processing
+    from tools.tagger_processing import txt2json
     import json
 
     def __init__(self, input_dir: str, output_dir: str) -> None:
@@ -119,7 +119,7 @@ class Txt2JsonProcessing:
         self.output_dir = output_dir
         create_dir(self.output_dir)
 
-        self.tagger_processing = self.Tagger_Processing()
+        self.tagger_processing = self.txt2json()
         self.tag_paths = self.__get_paths()
 
     def __get_paths(self):
@@ -142,14 +142,14 @@ class Txt2JsonProcessing:
 
 
 class Json2TxtProcessing:
-    from tools.tagger_processing import Tagger_Json_Processing
+    from tools.tagger_processing import json2txt
 
     def __init__(self, input_dir: str, output_dir: str, processsing_py: str = "./default_pro_json.py") -> None:
         self.input_dir = input_dir
         self.output_dir = output_dir
         create_dir(self.output_dir)
 
-        self.tagger_json_processing = self.Tagger_Json_Processing(processsing_py)
+        self.tagger_json_processing = self.json2txt(processsing_py)
         self.tag_paths = self.__get_paths()
 
     def __get_paths(self):

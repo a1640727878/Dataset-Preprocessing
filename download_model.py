@@ -121,91 +121,72 @@ class Upscaler_Downloader:
 
 
 class Yolo_Downloader:
-    def __init__(self):
+    def __init__(self) -> None:
         self.models = {
-            "face": {
-                "repo_id": "deepghs/anime_face_detection",
-                "models": ["face_detect_v1.4_s"],
-            },
-            "head": {
-                "repo_id": "deepghs/anime_head_detection",
-                "models": ["head_detect_v0.5_s_pruned"],
-            },
-            "person": {
-                "repo_id": "deepghs/anime_person_detection",
-                "models": ["person_detect_v1.3_s"],
-            },
-            "halfbody": {
-                "repo_id": "deepghs/anime_halfbody_detection",
-                "models": ["halfbody_detect_v1.0_s"],
-            },
-            "eye": {
-                "repo_id": "deepghs/anime_eye_detection",
-                "models": ["eye_detect_v1.0_s"],
-            },
-            "hand": {
-                "repo_id": "deepghs/anime_hand_detection",
-                "models": ["hand_detect_v1.0_s"],
-            },
-            "censor": {
-                "repo_id": "deepghs/anime_censor_detection",
-                "models": ["censor_detect_v1.0_s"],
-            },
-            "booru_yolo": {
-                "repo_id": "deepghs/booru_yolo",
-                "models": ["yolov8s_aa11"],
-                "ext": ("model.onnx", "meta.json"),
-            },
+            "face": self.__get_models_data(
+                "deepghs/anime_face_detection",
+                "face_detect_v1.4_s/model.onnx",
+                "./data/models/yolo/face.onnx",
+                ["face"],
+            ),
+            "head": self.__get_models_data(
+                "deepghs/anime_head_detection",
+                "head_detect_v0.5_s_pruned/model.onnx",
+                "./data/models/yolo/head.onnx",
+                ["head"],
+            ),
+            "person": self.__get_models_data(
+                "deepghs/anime_person_detection",
+                "person_detect_v1.3_s/model.onnx",
+                "./data/models/yolo/person.onnx",
+                ["person"],
+            ),
+            "halfbody": self.__get_models_data(
+                "deepghs/anime_halfbody_detection",
+                "halfbody_detect_v1.0_s/model.onnx",
+                "./data/models/yolo/halfbody.onnx",
+                ["halfbody"],
+            ),
+            "eye": self.__get_models_data(
+                "deepghs/anime_eye_detection",
+                "eye_detect_v1.0_s/model.onnx",
+                "./data/models/yolo/eye.onnx",
+                ["eye"],
+            ),
+            "hand": self.__get_models_data(
+                "deepghs/anime_hand_detection",
+                "hand_detect_v1.0_s/model.onnx",
+                "./data/models/yolo/hand.onnx",
+                ["hand"],
+            ),
+            "censor": self.__get_models_data(
+                "deepghs/anime_censor_detection",
+                "censor_detect_v1.0_s/model.onnx",
+                "./data/models/yolo/censor.onnx",
+                ["nipple_f", "penis", "pussy"],
+            ),
+            "booru_yolo": self.__get_models_data(
+                "deepghs/booru_yolo",
+                "yolov8s_aa11/model.onnx",
+                "./data/models/yolo/booru_yolo.onnx",
+                ["head", "bust", "boob", "shld", "sideb", "belly", "nopan", "butt", "ass", "split", "sprd", "vsplt", "vsprd", "hip", "wing", "feral", "hdrago", "hpony", "hfox", "hrabb", "hcat", "hbear", "jacko", "jackx", "hhorse", "hbird"],
+            ),
+            "nudenet": self.__get_models_data(
+                "deepghs/nudenet_onnx",
+                "320n.onnx",
+                "./data/models/yolo/nudenet.onnx",
+                ["female genitalia covered", "face female", "buttocks exposed", "female breast exposed", "female genitalia exposed", "male breast exposed", "anus exposed", "feet exposed", "belly covered", "feet covered", "armpits covered", "armpits exposed", "face male", "belly exposed", "male genitalia exposed", "anus covered", "female breast covered", "buttocks covered"],
+            ),
         }
         self.path_dir = "./data/models/yolo"
         self.models_data = Models_Data(self.path_dir)
-        for model_type_name, model in self.models.items():
-            repo_id = model["repo_id"]
-            models = model["models"]
-            for model_name in models:
-                model_labels_name = f"{model_name}_labels"
-                model_file_name = "model.onnx"
-                model_labels_file_name = "labels.json"
-                if "ext" in model:
-                    model_file_name, model_labels_file_name = model["ext"]
-                self.models_data.add_model(repo_id, model_name, f"{model_name}/{model_file_name}", output_file=f"{self.path_dir}/{model_type_name}/{model_name}/{model_file_name}")
-                self.models_data.add_model(repo_id, model_labels_name, f"{model_name}/{model_labels_file_name}", output_file=f"{self.path_dir}/{model_type_name}/{model_labels_name}/{model_labels_file_name}")
-        self.models["nudenet"] = {
-            "repo_id": "deepghs/nudenet",
-            "models": ["Default"],
-        }
+        for model_type_name, model_data in self.models.items():
+            self.models_data.add_model(model_data["repo_id"], model_type_name, model_data["repo_path"], output_file=model_data["to_path"])
 
-        self.models_data.add_model("deepghs/nudenet", "nudenet", "320n.onnx", output_file=f"{self.path_dir}/nudenet/model.onnx")
+    def __get_models_data(self, repo_id: str, repo_path: str, to_path: str, labels=[]):
+        return {"repo_id": repo_id, "repo_path": repo_path, "to_path": to_path, "labels": labels}
 
-    def __get_model_path(self, model_type_name: str) -> tuple[str, str]:
-        model_name = self.models[model_type_name]["models"][0]
-        model_labels_name = f"{model_name}_labels"
-        model = self.models_data.get_model(model_name)
-        model_label = self.models_data.get_model(model_labels_name)
-        return (model, model_label)
-
-    def __parse_json(self, json_path: str) -> dict:
-        with open(json_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    def __save_json(self, json_path: str, data: dict or list) -> None:
-        with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-
-    def get_model(self, model_type_name: str) -> tuple[str, str]:
-        if model_type_name == "booru_yolo":
-            new_label = f"{self.path_dir}/booru_yolo/labels.json"
-            model, model_label = self.__get_model_path(model_type_name)
-            if not os.path.exists(new_label):
-                meta_json = self.__parse_json(model_label)
-                new_json: list = meta_json["labels"]
-                self.__save_json(new_label, new_json)
-            return (model, new_label)
-        elif model_type_name == "nudenet":
-            label = f"{self.path_dir}/nudenet/labels.json"
-            if not os.path.exists(label):
-                new_json = ["FEMALE_GENITALIA_COVERED", "FACE_FEMALE", "BUTTOCKS_EXPOSED", "FEMALE_BREAST_EXPOSED", "FEMALE_GENITALIA_EXPOSED", "MALE_BREAST_EXPOSED", "ANUS_EXPOSED", "FEET_EXPOSED", "BELLY_COVERED", "FEET_COVERED", "ARMPITS_COVERED", "ARMPITS_EXPOSED", "FACE_MALE", "BELLY_EXPOSED", "MALE_GENITALIA_EXPOSED", "ANUS_COVERED", "FEMALE_BREAST_COVERED", "BUTTOCKS_COVERED"]
-                self.__save_json(label, new_json)
-            return (self.models_data.get_model(model_type_name), label)
-        else:
-            return self.__get_model_path(model_type_name)
+    def get_model(self, model_type_name: str) -> tuple[str, list]:
+        model = self.models_data.get_model(model_type_name)
+        labels = self.models[model_type_name]["labels"]
+        return (model, labels)

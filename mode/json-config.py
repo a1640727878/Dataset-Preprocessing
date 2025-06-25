@@ -77,7 +77,7 @@ def main():
             image_pro.run()
         elif item["mode"] == "wd_tagger":
             input_dir, output_dir, confidence_threshold, thread_count, wd_model = config.get_wd_tagger_config(item)
-            wd_tagger = WDTagger(input_dir, output_dir, confidence_threshold, thread_count, wd_model)
+            wd_tagger = WDTagger(wd_model, (input_dir, output_dir), confidence_threshold, thread_count)
             wd_tagger.run()
         elif item["mode"] == "json2txt":
             input_dir, output_dir, processing_py = config.get_json2txt_config(item)

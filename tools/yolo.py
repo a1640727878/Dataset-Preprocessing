@@ -4,10 +4,9 @@ from yolov8_onnx import DetectEngine
 
 
 class YOLO:
-    def __init__(self, model: tuple[str, str], confidence_threshold: float = 0.25, iou_threshold: float = 0.7) -> None:
-        self.model_path, self.label_path = model
+    def __init__(self, model: tuple[str, list], confidence_threshold: float = 0.25, iou_threshold: float = 0.7) -> None:
+        self.model_path, self.classes = model
 
-        self.classes = self.__parse_json(self.label_path)
         self.max_size = 640
 
         self.detector = DetectEngine(self.model_path, image_size=self.max_size, conf_thres=confidence_threshold, iou_thres=iou_threshold)

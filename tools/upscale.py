@@ -99,7 +99,8 @@ class Image_Upscaler:
         return result_image
 
     def __upscale_tile(self, image: Image, noise: int = 0, scale: int = 2):
-        width, height = image.size
+        new_image = image.copy()
+        width, height = new_image.size
         output_width = width * scale
         output_height = height * scale
         output_image = Image.new("RGB", (output_width, output_height))
@@ -134,7 +135,7 @@ class Image_Upscaler:
                 else:
                     y_end = y_start + origin_stride
 
-                tile_image = image.crop((x_start, y_start, x_end, y_end))
+                tile_image = new_image.crop((x_start, y_start, x_end, y_end))
                 result_image = self.__upscale(tile_image, noise, scale)
 
                 paste_x_start = x_start * scale

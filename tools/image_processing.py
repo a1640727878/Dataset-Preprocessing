@@ -1,5 +1,7 @@
 from PIL import Image
 import math
+import random
+
 from tools.upscale import Image_Upscaler
 
 RATIOS = {
@@ -15,6 +17,32 @@ RATIOS = {
     "9_16": (9, 16),
     "16_9": (16, 9),
 }
+
+random_color = {
+    "red": (255, 0, 0),
+    "green": (0, 255, 0),
+    "blue": (0, 0, 255),
+    "yellow": (255, 255, 0),
+    "white": (255, 255, 255),
+    "gray": (128, 128, 128),
+}
+
+
+def get_random_color():
+    return random.choice(list(random_color.values()))
+
+
+def getImage(image_path: str):
+    img = Image.open(image_path)
+    if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
+        background = Image.new("RGB", img.size, get_random_color())
+        if img.mode == "RGBA":
+            background.paste(img, mask=img.split()[3])
+        else:
+            alpha = img.convert("L").split()[0]
+            background.paste(img.convert("RGB"), mask=alpha)
+        img = background
+    return img
 
 
 class Image_Processing:
@@ -121,7 +149,8 @@ class Image_Processing:
         return new_image, ratio_name
 
     def pro_image(self, image_path: str, max_size=1024, ratio=True) -> tuple[Image, str]:
-        image = Image.open(image_path)
+        image = getImage(image_path)
+
         image = self.__resize_image(image, max_size)
         if ratio:
             image, ratio_name = self.__crop_to_ratio(image)

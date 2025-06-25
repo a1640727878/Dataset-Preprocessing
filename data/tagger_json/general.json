@@ -1,0 +1,84 @@
+{
+    "start": [],
+    "rating": [
+        "general",
+        "sensitive",
+        "questionable",
+        "explicit"
+    ],
+    "character": [
+        "#{character.one}",
+        "#{character.boys}",
+        "#{character.girls}",
+        "#{character.others}",
+        "#{character.age}",
+        "#{character.focus}"
+    ],
+    "framing": [
+        "close-up",
+        "portrait",
+        "upper body",
+        "lower body",
+        "cowboy shot",
+        "full body",
+        "$(.*) focus$"
+    ],
+    "body": {
+        "skin": [
+            "$(.*) skin$"
+        ],
+        "hair": [
+            "#{body/hair.colors}",
+            "#{body/hair.length}",
+            "#{body/hair.hairstyles}"
+        ],
+        "eyebrows": [
+            "$(.*) eyebrows$",
+            "hikimayu",
+            "eyebrow piercing",
+            "eyebrow cut"
+        ],
+        "eyes": [
+            "heterochromia",
+            "#{type.colors} eyes",
+            "blank eyes",
+            "no sclera",
+            "#{type.colors} sclera"
+        ],
+        "mouth": [
+            "fang",
+            "fang out",
+            "skin fang",
+            "tusks",
+            "tongue",
+            "long tongue",
+            "tongue out",
+            "licking lips"
+        ],
+        "ears": [
+            "kemonomimi mode",
+            "floppy ears",
+            "hair ears",
+            "animal ears",
+            "#{type.animal} ears",
+            "$(.*)ear fluff$",
+            "pointy ears",
+            "long pointy ears",
+            "robot ears"
+        ],
+        "tail": [
+            "tail",
+            "$(.*)tail fluff$",
+            "$(.*) tail$"
+        ],
+        "wings": [
+            "$(.*)wings$"
+        ]
+    },
+    "background": [
+        "simple background",
+        "#{type.colors} background",
+        "outdoors",
+        "indoors"
+    ]
+}
