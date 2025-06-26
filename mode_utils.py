@@ -103,6 +103,8 @@ class ImageProcessing:
     def run(self) -> None:
         for image_path, out_path in self.image_paths:
             new_image, ratio_name = self.image_processing.pro_image(image_path, self.image_long_size, self.is_resize)
+            if new_image is None:
+                continue
             if not self.is_resize:
                 ratio_name = ""
             new_out_path = out_path.replace("[rario_name]", f"_{ratio_name}")

@@ -1,5 +1,7 @@
 import json
+import sys
 import argparse
+import subprocess
 
 from mode_utils import WDTagger, ImageProcessing, Json2TxtProcessing, Txt2JsonProcessing, YoloCroppr
 
@@ -42,6 +44,10 @@ class Default_Config:
         iou_threshold = config.get("iou_threshold", 0.7)
         cropers_names = config.get("cropers_names", ["person", "halfbody", "head", "face"])
         return input_dir, output_dir, confidence_threshold, iou_threshold, cropers_names
+
+    def get_run_py_config(self, config: dict) -> str or None:
+        py_path = config.get("py_path", None)
+        return py_path
 
     def get_full_config(self, json_path: str) -> list:
         json_data = []
@@ -91,6 +97,11 @@ def main():
             input_dir, output_dir, confidence_threshold, iou_threshold, cropers_names = config.get_yolo_croppr_config(item)
             yolo_croppr = YoloCroppr(input_dir, output_dir, cropers_names, confidence_threshold, iou_threshold)
             yolo_croppr.run()
+        elif item["mode"] == "run_py":
+            py_path = config.get_run_py_config(item)
+            if py_path is None:
+                continue
+            subprocess.run([sys.executable, py_path])
 
 
 if __name__ == "__main__":

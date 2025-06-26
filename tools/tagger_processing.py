@@ -55,7 +55,6 @@ class txt2json:
                 json_data = dict2flat(json_data)
             json_name = json_path_str[self.tools_json_dir.__len__() - 1 : -5].replace("\\", "/")
             self.tools_json[json_name] = json_data
-        print(self.tools_json)
 
         self.while_count = while_count
 
@@ -82,7 +81,7 @@ class txt2json:
     def __get_general_data_copy(self) -> dict:
         return self.general_data.copy()
 
-    def __remove_txtlist(self, data_dict: dict, txt_list: list[str], str_start: tuple[str, ...] = ("$", "#")) -> tuple[list[str], dict]:
+    def remove_txtlist(self, data_dict: dict, txt_list: list[str], str_start: tuple[str, ...] = ("$", "#")) -> tuple[list[str], dict]:
         new_txt_list = txt_list.copy()
         flat_data = dict2flat(data_dict)
         for key, value in flat_data.items():
@@ -96,7 +95,7 @@ class txt2json:
             flat_data[key] = new_data
         return new_txt_list, flat2dict(flat_data)
 
-    def __updata_placeholder(self, data: dict, txt_list: list[str] = []):
+    def updata_placeholder(self, data: dict, txt_list: list[str] = []):
         flat = dict2flat(data)
         for key, value in flat.items():
             new_data = []
@@ -125,7 +124,7 @@ class txt2json:
             flat[key] = new_data_2
         return flat2dict(flat)
 
-    def __updata_replace(self, data: dict, txt_list: list[str] = [], remove_txt_list: list[str] = []):
+    def updata_replace(self, data: dict, txt_list: list[str] = [], remove_txt_list: list[str] = []):
         flat = dict2flat(data)
         for key, value in flat.items():
             new_data = []
@@ -152,19 +151,19 @@ class txt2json:
         while_count = self.while_count
         while while_count > 0:
             while_count -= 1
-            new_general_data = self.__updata_placeholder(general_data, txt_list)
+            new_general_data = self.updata_placeholder(general_data, txt_list)
             general_data = new_general_data
 
-        remove_txt_list, general_data_2 = self.__remove_txtlist(general_data, txt_list, ("$"))
+        remove_txt_list, general_data_2 = self.remove_txtlist(general_data, txt_list, ("$"))
         general_data = general_data_2.copy()
 
         while_count = self.while_count
         while while_count > 0:
             while_count -= 1
-            new_general_data = self.__updata_replace(general_data, txt_list, remove_txt_list)
+            new_general_data = self.updata_replace(general_data, txt_list, remove_txt_list)
             general_data = new_general_data
 
-        remove_txt_list, general_data_2 = self.__remove_txtlist(general_data, txt_list, ())
+        remove_txt_list, general_data_2 = self.remove_txtlist(general_data, txt_list, ())
         general_data = general_data_2.copy()
 
         general_data["misc"] = remove_txt_list

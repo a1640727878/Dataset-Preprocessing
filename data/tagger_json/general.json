@@ -12,7 +12,14 @@
         "#{character.girls}",
         "#{character.others}",
         "#{character.age}",
-        "#{character.focus}"
+        "#{character.focus}",
+        "$^toned(.*)",
+        "no humans"
+    ],
+    "animal": [
+        "creature",
+        "animal",
+        "#{type.animal}"
     ],
     "framing": [
         "close-up",
@@ -25,47 +32,134 @@
     ],
     "body": {
         "skin": [
-            "$(.*) skin$"
+            "$(.*) skin$",
+            "$^dark-skinned (.*)"
         ],
-        "hair": [
-            "#{body/hair.colors}",
-            "#{body/hair.length}",
-            "#{body/hair.hairstyles}"
+        "sweat": [
+            "sweat",
+            "sweatdrop"
         ],
-        "eyebrows": [
-            "$(.*) eyebrows$",
-            "hikimayu",
-            "eyebrow piercing",
-            "eyebrow cut"
+        "hand": {
+            "gloves": [
+                "gloves",
+                "#{type.colors} gloves",
+                "$(.*) gloves$",
+                "goggles",
+                "$^goggles (.*)"
+            ],
+            "face": [
+                "$(.*) face$",
+                "$(.*)blush(.*)"
+            ],
+            "hat": [
+                "hat",
+                "#{type.colors} hat",
+                "$(.*) hat$",
+                "cap",
+                "#{type.colors} cap",
+                "$(.*) cap$",
+                "helmet",
+                "headwear",
+                "#{type.colors} headwear",
+                "$(.*) headwear$"
+            ],
+            "hair": [
+                "#{body/hair.colors}",
+                "#{body/hair.length}",
+                "#{body/hair.hairstyles}"
+            ],
+            "eyebrows": [
+                "$(.*) eyebrows$",
+                "hikimayu",
+                "eyebrow piercing",
+                "eyebrow cut",
+                "frown"
+            ],
+            "eyes": [
+                "heterochromia",
+                "#{type.colors} eyes",
+                "blank eyes",
+                "no sclera",
+                "#{type.colors} sclera",
+                "$(.*)eye(.*)",
+                "$(.*)eyes$",
+                "sanpaku"
+            ],
+            "nose": [
+                "nose",
+                "$(.*) nose$"
+            ],
+            "mouth": [
+                "$(.*)teeth(.*)",
+                "$(.*)fang(.*)",
+                "tusks",
+                "$(.*)tongue(.*)",
+                "$(.*)lips(.*)",
+                "open mouth",
+                "closed mouth",
+                "$(.*)mouth$",
+                "$(.*)smile$",
+                "grin"
+            ],
+            "mask": [
+                "$(.*) mask$"
+            ],
+            "ears": [
+                "kemonomimi mode",
+                "floppy ears",
+                "hair ears",
+                "animal ears",
+                "$(.*)ear fluff$",
+                "#{type.animal} ears",
+                "$(.*) ears"
+            ]
+        },
+        "nude": [
+            "$^topless(.*)",
+            "$(.*)nude(.*)",
+            "$(.*)collarbone$",
+            "pectorals",
+            "$(.*)nipples$",
+            "abs",
+            "navel"
         ],
-        "eyes": [
-            "heterochromia",
-            "#{type.colors} eyes",
-            "blank eyes",
-            "no sclera",
-            "#{type.colors} sclera"
+        "censoring": [
+            "censor",
+            "$(.*)censor(.*)"
         ],
-        "mouth": [
-            "fang",
-            "fang out",
-            "skin fang",
-            "tusks",
-            "tongue",
-            "long tongue",
-            "tongue out",
-            "licking lips"
-        ],
-        "ears": [
-            "kemonomimi mode",
-            "floppy ears",
-            "hair ears",
-            "animal ears",
-            "#{type.animal} ears",
-            "$(.*)ear fluff$",
-            "pointy ears",
-            "long pointy ears",
-            "robot ears"
-        ],
+        "upper_body": {
+            "scarf": [
+                "scarf",
+                "$(.*)scarf$",
+                "#{type.colors} scarf"
+            ],
+            "shirt": [
+                "$(.*)shirt$",
+                "#{type.colors} shirt",
+                "$(.*)coat$",
+                "#{type.colors} coat",
+                "$(.*)jacket$",
+                "#{type.colors} jacket",
+                "$(.*)hoodie$",
+                "#{type.colors} hoodie",
+                "$(.*)tank top",
+                "#{type.colors} tank top",
+                "hood",
+                "$^hood (.*)$",
+                "$(.*)sleeves$",
+                "$^sleeves(.*)"
+            ],
+            "watch": [
+                "ring",
+                "$(.*)(\\-|\\s)ring$",
+                "watch",
+                "wristwatch"
+            ],
+            "bag": [
+                "$^(.*)bag",
+                "backpack"
+            ]
+        },
         "tail": [
             "tail",
             "$(.*)tail fluff$",
@@ -73,12 +167,61 @@
         ],
         "wings": [
             "$(.*)wings$"
+        ],
+        "down_body": {
+            "pants": [
+                "pants",
+                "$(.*) pants$",
+                "#{type.colors} pants",
+                "shorts",
+                "$(.*) shorts$",
+                "#{type.colors} shorts",
+                "swim trunks",
+                "male swimwear",
+                "$(.*) male swimwear$",
+                "#{type.colors} male swimwear$",
+                "jumpsuit",
+                "bulge"
+            ],
+            "legs": [
+                "$^legs(.*)",
+                "$^leg(.*)",
+                "$(.*)legs$",
+                "$(.*)leg$"
+            ],
+            "footwear": [
+                "shoes",
+                "$(.*)shoes$",
+                "boots",
+                "sneakers",
+                "#{type.colors} footwear",
+                "barefoot"
+            ]
+        },
+        "clothes": [
+            "$(.*)clothes$",
+            "$(.*)uniform$"
         ]
     },
+    "actions": [
+        "#{actions.all_pose}"
+    ],
+    "kaomoji": [
+        "#{expression.kaomoji}"
+    ],
     "background": [
+        "sparkle",
         "simple background",
         "#{type.colors} background",
         "outdoors",
-        "indoors"
+        "indoors",
+        "sky",
+        "#{type.colors} sky"
+    ],
+    "misc": [],
+    "end": [],
+    "blacklist": [
+        "#{character_blacklist}",
+        "#{blacklist}"
     ]
 }

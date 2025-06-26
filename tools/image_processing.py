@@ -150,8 +150,11 @@ class Image_Processing:
 
     def pro_image(self, image_path: str, max_size=1024, ratio=True) -> tuple[Image, str]:
         image = getImage(image_path)
-
-        image = self.__resize_image(image, max_size)
-        if ratio:
-            image, ratio_name = self.__crop_to_ratio(image)
-        return image, ratio_name if ratio else None
+        try:
+            image = self.__resize_image(image, max_size)
+            if ratio:
+                image, ratio_name = self.__crop_to_ratio(image)
+            return image, ratio_name if ratio else None
+        except Exception as e:
+            print(e)
+            return None, None

@@ -19,7 +19,6 @@
         "other focus"
     ],
     "multiple": [
-        "multiple",
         "2",
         "3",
         "4",
@@ -27,16 +26,19 @@
         "6+"
     ],
     "boys": [
+        "multiple boys",
         "#{character.multiple}boys",
         "#{type.animal} boy",
         "$(.*) boy$"
     ],
     "girls": [
+        "multiple girls",
         "#{character.multiple}girls",
         "#{type.animal} girl",
         "$(.*) girl$"
     ],
     "others": [
+        "multiple others",
         "#{character.multiple}others"
     ]
 }
