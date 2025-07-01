@@ -1,0 +1,51 @@
+{
+    "head": {
+        "headwear": [
+            "#{body/head.headwear}"
+        ],
+        "hair": [
+            "#{body/head.hair}",
+            "#{body/head.hair_objects}"
+        ],
+        "eyes": [
+            "#{body/head.eyebrows}",
+            "#{body/head.eyes}",
+            "#{body/head.eyes_objects}"
+        ],
+        "ears": [
+            "#{body/haed.ears}",
+            "#{body/haed.ears_objects}"
+        ],
+        "beard": [
+            "#{body/head.beard}"
+        ],
+        "misc": [
+            "#{body/head.misc}"
+        ]
+    },
+    "torso": {
+        "nuck": [
+            "#{body/torso.nuck}"
+        ],
+        "shoulders": [
+            "#{body/torso.shoulders}"
+        ],
+        "breasts": [
+            "#{body/torso.breasts}",
+            "#{body/torso.breasts_objects}"
+        ],
+        "topwear": [
+            "#{body/torso.topwear}"
+        ],
+        "lowear": [
+            "#{body/torso.lowear}"
+        ]
+    },
+    "appendages": [
+        "#{body/appendages.top}",
+        "#{body/appendages.joints}",
+        "#{body/appendages.misc}",
+        "#{body/appendages.low}",
+        "#{body/appendages.clothings}"
+    ]
+}

@@ -13,7 +13,7 @@ def dict2flat(dict_data: dict) -> dict:
             for key, value in data.items():
                 new_key = f"{parent_key}.{key}" if parent_key else key
                 __toflat(value, new_key)
-        elif isinstance(data, list):
+        elif isinstance(data, (list, str)):
             new_data[parent_key] = data
 
     __toflat(dict_data)
@@ -56,6 +56,8 @@ class txt2json:
             json_name = json_path_str[self.tools_json_dir.__len__() - 1 : -5].replace("\\", "/")
             self.tools_json[json_name] = json_data
 
+        self.generals_json_dir = f"{self.data_json_dir}/generals"
+
         self.while_count = while_count
 
     def __json2dict(self, json_path: str) -> dict:
@@ -70,6 +72,10 @@ class txt2json:
                 strs = line.strip().replace("\n", "").replace(", ", ",").split(",")
                 result.extend(strs)
         return result
+
+    def __get_general_dict(self, name: str):
+        path = f"{self.generals_json_dir}/{name}.json"
+        return self.__json2dict(path)
 
     def __get_tools_list(self, name: str):
         path, _, key = name.partition(".")
@@ -94,6 +100,13 @@ class txt2json:
                     new_txt_list.remove(item)
             flat_data[key] = new_data
         return new_txt_list, flat2dict(flat_data)
+
+    def updata_general(self, data):
+        new_data = dict2flat(data)
+        for key, value in new_data.items():
+            if isinstance(value, str):
+                new_data[key] = self.__get_general_dict(value)
+        return flat2dict(new_data)
 
     def updata_placeholder(self, data: dict, txt_list: list[str] = []):
         flat = dict2flat(data)
@@ -147,24 +160,21 @@ class txt2json:
     def pro_tagger(self, txt_path: str) -> dict:
         general_data = self.__get_general_data_copy()
         txt_list = self.__txt2dict(txt_path)
+        general_data = self.updata_general(general_data)
 
         while_count = self.while_count
         while while_count > 0:
             while_count -= 1
-            new_general_data = self.updata_placeholder(general_data, txt_list)
-            general_data = new_general_data
+            general_data = self.updata_placeholder(general_data, txt_list)
 
-        remove_txt_list, general_data_2 = self.remove_txtlist(general_data, txt_list, ("$"))
-        general_data = general_data_2.copy()
+        remove_txt_list, general_data = self.remove_txtlist(general_data, txt_list, ("$"))
 
         while_count = self.while_count
         while while_count > 0:
             while_count -= 1
-            new_general_data = self.updata_replace(general_data, txt_list, remove_txt_list)
-            general_data = new_general_data
+            general_data = self.updata_replace(general_data, txt_list, remove_txt_list)
 
-        remove_txt_list, general_data_2 = self.remove_txtlist(general_data, txt_list, ())
-        general_data = general_data_2.copy()
+        remove_txt_list, general_data = self.remove_txtlist(general_data, txt_list, ())
 
         general_data["misc"] = remove_txt_list
         return general_data

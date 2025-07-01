@@ -17,7 +17,7 @@ class WDTagger:
     from tools.wd_tagger import WDTagger
     import threading
 
-    def __init__(self, model_name: str = "wd-eva02-large-tagger-v3", dir: tuple[str, str] = ("./in", "./out"), confidence_threshold: float = 0.3, thread_count: int = 1):
+    def __init__(self, model_name: str = "wd-eva02-large-tagger-v3", dir: tuple[str, str] = ("./in", "./out"), confidence_threshold: float = 0.35, thread_count: int = 1):
         self.confidence_threshold = confidence_threshold
         self.model_name = model_name
 

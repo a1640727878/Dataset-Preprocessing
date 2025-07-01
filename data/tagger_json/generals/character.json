@@ -1,0 +1,19 @@
+[
+    "solo",
+    "solo focus",
+    "$^(fe)?male focus",
+    "$^multiple (boys|girls|others)$",
+    "$^[1-6]+?(boy|girl|other)s?$",
+    "$(.*) (boy|girl)$",
+    "toddlercon",
+    "child",
+    "shota",
+    "onee-shota",
+    "onii-shota",
+    "loli",
+    "lolidom",
+    "onee-loli",
+    "oppai loli",
+    "mesugaki",
+    "petite"
+]
