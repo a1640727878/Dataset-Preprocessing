@@ -1,4 +1,4 @@
-PySide6
+gradio
 
 pillow
 opencv-python
@@ -10,12 +10,11 @@ timm
 tqdm
 onnx
 onnxruntime
+transformers
 
+kornia
 yolov8-onnx
 
 numpy
 pandas
-kornia
 pySmartDL
-
-transformers
