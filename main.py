@@ -1,5 +1,4 @@
 from pathlib import Path
-from tkinter import S
 import webview
 import gradio as gr
 
