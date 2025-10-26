@@ -20,7 +20,7 @@ SmilingWolf_models = [
     "wd-v1-4-vit-tagger",
 ]
 
-models_source = ["SmilingWolf", "Pixai" "Z3D_E621", "Camie"]
+models_source = ["SmilingWolf", "Pixai", "Z3D_E621", "Camie"]
 
 
 class Tagger_Models:
